@@ -1,0 +1,3 @@
+Character_ID,Name,Speed_Min,Speed_Max,HP,MP,Attack,Defense,Skill_ID
+TEST_01,테스트아군,4,6,100,70,15,20,"TEST_SK01,TEST_SK02"
+TEST_02,테스트적,3,7,110,50,13,18,"TEST_SK01,TEST_SK03"
