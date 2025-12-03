@@ -1,0 +1,13 @@
+// 대화 스크립트를 원하는 포맷으로 만들고 파싱해서 데이터 구조로 만들기
+// 아래는 예시
+# testScene_01
+
+@bg testBG_01
+@music test_theme01
+
+[이름01, face_idle]
+안녕
+
+[이름02, face_smile]
+하이
+쓸말없네
