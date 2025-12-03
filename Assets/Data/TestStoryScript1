@@ -11,3 +11,15 @@
 [이름02, face_smile]
 하이
 쓸말없네
+
+@choice
+- 이야기를 더한다|talk_branch
+- 그만둔다|exit_branch
+
+# talk_branch
+[이름01, face_idle]
+이야깃거리가 없니?
+
+#exit_branch
+[system]
+주변을 둘러보자
