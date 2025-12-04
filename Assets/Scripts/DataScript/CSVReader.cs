@@ -1,7 +1,6 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System;
 
 [Serializable]
@@ -17,9 +16,8 @@ public class CSVReader : MonoBehaviour
     public Dictionary<string, SkillData> skillDatas = new();
 
     [ContextMenu("Read CSV File")]
-    private void ReadCSV()
+    public void ReadCSV()
     {
-
         if(csvFile == null)
         {
             Debug.LogError("csvFile이 비어있습니다");
@@ -40,7 +38,7 @@ public class CSVReader : MonoBehaviour
 
             string[] cols = line.Split(',');
 
-            if(readData == ReadData.characterData)
+            if(readData == ReadData.CharacterData)
             {
                 if(cols.Length < 9)
                 { 
