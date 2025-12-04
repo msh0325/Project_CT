@@ -14,6 +14,8 @@ public class BattleUnit
     public int currentHP;
     public int currentMP;
 
+    public List<SkillData> skills = new();
+
     public bool isDead => currentHP <=0;
 
     public BattleUnit(CharacterStat stat, TeamType teamType)
