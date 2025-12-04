@@ -1,0 +1,43 @@
+using UnityEngine;
+using System.Collections.Generic;
+
+public class DataManager : MonoBehaviour
+{
+    public static DataManager instance;
+
+    public CSVReader csvReader;
+
+    // dictionary를 이용해 id로 캐릭터와 스킬 불러오기
+    public Dictionary<string, CharacterStat> characterStats = new();
+    public Dictionary<string, SkillData> skillDatas = new();
+    public Dictionary<string, StageData> stageDatas = new();
+    public Dictionary<string, List<WaveData>> waveDatas = new();
+
+    void Awake()
+    {
+        if(instance == null)
+        {
+            instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        DontDestroyOnLoad(gameObject);
+
+        // characterData 불러오기
+        csvReader.ReadCharacterCSV(characterStats);
+
+        // skillData 불러오기
+        csvReader.ReadSkillCSV(skillDatas);
+
+        // stageData 불러오기
+        csvReader.ReadStageCSV(stageDatas);
+
+        // waveData 불러오기
+        csvReader.ReadWaveCSV(waveDatas);
+
+    }
+}
