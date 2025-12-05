@@ -9,9 +9,15 @@ public class TurnGameManager : MonoBehaviour
     public List<string> allyCharacterIDs;
     public List<string> enemyCharacterIDs;
 
+    // 나중에 playerData 구현하면, 거기서 받아오기
+    // 당장은 직접 입력으로 테스트만
+    [Header("스테이지 구성")]
+    public string stageID;
+
     private List<BattleUnit> allies = new();
     private List<BattleUnit> enemies = new();
     private List<BattleUnit> turnOrder = new();
+    private List<WaveData> waves = new();
 
     private DataManager dataManager;
     
@@ -70,8 +76,22 @@ public class TurnGameManager : MonoBehaviour
                 Debug.Log($"now {nowUnit.name}'s turn. hp : {nowUnit.currentHP} / mp : {nowUnit.currentMP}");
                 state = BattleState.RunTurn;
                 
-                BattleUnit target = nowUnit.team == TeamType.Ally? enemies[0] : allies[0];
-                nowUnit.TestAttack(target,rnd);
+                BattleUnit target = null;
+
+                if(nowUnit.team == TeamType.Ally)
+                {
+                    target = enemies.FirstOrDefault(u => !u.isDead);
+                }
+                else
+                {
+                    target = allies.FirstOrDefault(u =>!u.isDead);
+                }
+
+                if(target != null)
+                {
+                    nowUnit.TestAttack(target,rnd);                    
+                }
+                
                 yield return new WaitForSeconds(2f);
                 //yield return new WaitUntil(characterTurnEnd); << 이런느낌?
 
@@ -86,7 +106,6 @@ public class TurnGameManager : MonoBehaviour
 
         // 전투 종료.
         state = BattleState.Idle;
-        yield return null;
     }
 
     private void SetUpBattleUnits()
@@ -94,6 +113,13 @@ public class TurnGameManager : MonoBehaviour
         // 현재 참여중인 캐릭터 체크하기
         // 아군은 플레이어가 편성한 로스터 확인하기
         // 적군은 datamanager에 있는 stagedata & wavedata로 확인하기
+        
+        if(dataManager.waveDatas.TryGetValue(stageID,out var stageWaves))
+        {
+            waves.AddRange(stageWaves);
+        }
+
+        enemyCharacterIDs.AddRange(waves[nowWaveIndex].enemyID);
 
         // 당장은 직접 입력해서 팀 데이터 읽기
         foreach(string ally in allyCharacterIDs)
@@ -110,18 +136,48 @@ public class TurnGameManager : MonoBehaviour
             }
         }
         
-        //적군도 마찬가지로 직접 입력하기
         foreach(string enemy in enemyCharacterIDs)
         {
             if (dataManager.characterStats.ContainsKey(enemy))
             {
-                BattleUnit unit = new BattleUnit(dataManager.characterStats[enemy],TeamType.Enemy);
+                BattleUnit unit = new(dataManager.characterStats[enemy],TeamType.Enemy);
                 enemies.Add(unit);
                 turnOrder.Add(unit);
 
                 unit.InitSkills(dataManager.skillDatas);
 
                 Debug.Log($"add new {unit.team} {dataManager.characterStats[enemy].name}");
+            }
+        }
+    }
+
+    private void SetUpWaveBattleUnits(int waveIndex)
+    {
+        turnOrder.Clear();
+        enemies.Clear();
+        enemyCharacterIDs.Clear();
+
+        foreach(var ally in allies)
+        {
+            if (!ally.isDead)
+            {
+                turnOrder.Add(ally);
+            }
+        }
+        
+        enemyCharacterIDs.AddRange(waves[waveIndex].enemyID);
+        
+        foreach(var enemy in enemyCharacterIDs)
+        {
+            if (dataManager.characterStats.ContainsKey(enemy))
+            {
+                BattleUnit unit = new(dataManager.characterStats[enemy],TeamType.Enemy);
+                enemies.Add(unit);
+                turnOrder.Add(unit);
+
+                unit.InitSkills(dataManager.skillDatas);
+
+                Debug.Log($"new wave add new {unit.team} {dataManager.characterStats[enemy].name}");
             }
         }
     }
@@ -159,13 +215,39 @@ public class TurnGameManager : MonoBehaviour
         bool alliesAllDead = allies.All(u => u.isDead);
 
         bool enemiesAllDead = enemies.All(u => u.isDead);
-        
 
-        if(alliesAllDead || enemiesAllDead)
+        if (alliesAllDead)
         {
-            Debug.Log($"end game");
+            Debug.Log("defeat");
             isBattleEnd = true;
+            return;
         }
+
+        if (enemiesAllDead)
+        {
+            if (HasNextWave())
+            {
+                nowWaveIndex++;
+                Debug.Log("next wave");
+                SetUpWaveBattleUnits(nowWaveIndex);
+                return;
+            }
+            else
+            {
+                Debug.Log("victory");
+                isBattleEnd = true;
+                return;
+            }
+        }
+    }
+
+    private bool HasNextWave()
+    {
+        if(!dataManager.waveDatas.TryGetValue(stageID,out var wavedata))
+        {
+            return false;
+        }
+        return nowWaveIndex + 1 < waves.Count;
     }
 }
 
