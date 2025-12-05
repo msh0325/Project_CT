@@ -1,4 +1,6 @@
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class TurnGameManager : MonoBehaviour
@@ -17,6 +19,7 @@ public class TurnGameManager : MonoBehaviour
     private int currentTurnIndex = 0;
     private BattleState state = BattleState.Idle;
     private bool isBattleEnd = false;
+    private System.Random rnd = new ();
 
     void Start()
     {
@@ -29,6 +32,7 @@ public class TurnGameManager : MonoBehaviour
         {
             dataManager = DataManager.instance;
         }
+        StartCoroutine(BattleRoutine());
     }
 
     void Update()
@@ -56,11 +60,19 @@ public class TurnGameManager : MonoBehaviour
             for(int i = 0; i < turnOrder.Count; i++)
             {
                 currentTurnIndex = i;
+                BattleUnit nowUnit = turnOrder[currentTurnIndex];
                 // 3. turnOrder 순으로 캐릭터 턴 시작 (state = TurnStart)
                 state = BattleState.TurnStart;
+                // 턴 진행중 죽었으면 다음 순서
+                if(nowUnit.isDead) continue;
 
                 // 4. 캐릭터 행동 대기. 플레이어의 주/부 행동 입력 or 적의 AI 입력 (state = RunTurn)
+                Debug.Log($"now {nowUnit.name}'s turn. hp : {nowUnit.currentHP} / mp : {nowUnit.currentMP}");
                 state = BattleState.RunTurn;
+                
+                BattleUnit target = nowUnit.team == TeamType.Ally? enemies[0] : allies[0];
+                nowUnit.TestAttack(target,rnd);
+                yield return new WaitForSeconds(2f);
                 //yield return new WaitUntil(characterTurnEnd); << 이런느낌?
 
                 // 5. 캐릭터 행동 종료. turnOrder에 남은 캐릭터 있으면 3번부터 시작 (state = TurnEnd)
@@ -74,6 +86,7 @@ public class TurnGameManager : MonoBehaviour
 
         // 전투 종료.
         state = BattleState.Idle;
+        yield return null;
     }
 
     private void SetUpBattleUnits()
@@ -81,16 +94,78 @@ public class TurnGameManager : MonoBehaviour
         // 현재 참여중인 캐릭터 체크하기
         // 아군은 플레이어가 편성한 로스터 확인하기
         // 적군은 datamanager에 있는 stagedata & wavedata로 확인하기
+
+        // 당장은 직접 입력해서 팀 데이터 읽기
+        foreach(string ally in allyCharacterIDs)
+        {
+            if (dataManager.characterStats.ContainsKey(ally))
+            {
+                BattleUnit unit = new BattleUnit(dataManager.characterStats[ally],TeamType.Ally);
+                allies.Add(unit);
+                turnOrder.Add(unit);
+
+                unit.InitSkills(dataManager.skillDatas);
+                
+                Debug.Log($"add new {unit.team} {dataManager.characterStats[ally].name}");
+            }
+        }
+        
+        //적군도 마찬가지로 직접 입력하기
+        foreach(string enemy in enemyCharacterIDs)
+        {
+            if (dataManager.characterStats.ContainsKey(enemy))
+            {
+                BattleUnit unit = new BattleUnit(dataManager.characterStats[enemy],TeamType.Enemy);
+                enemies.Add(unit);
+                turnOrder.Add(unit);
+
+                unit.InitSkills(dataManager.skillDatas);
+
+                Debug.Log($"add new {unit.team} {dataManager.characterStats[enemy].name}");
+            }
+        }
     }
 
     private void RollUnitSpeed()
     {
+        // 죽은 캐릭터 turnOrder에서 제외
+        turnOrder = allies.Concat(enemies).Where(u=>!u.isDead).ToList();
+
         // 현재 참여중인 캐릭터 속도 굴리기
+        foreach(BattleUnit unit in turnOrder)
+        {
+            unit.RollSpeed(rnd);
+            Debug.Log($"{unit.name}'s speed : {unit.currentSpeed}");
+        }
+
+        // 속도순으로 내림차순. 그러나 속도가 같은 경우 이전 순서대로 정렬됨
+        turnOrder.Sort((a, b) =>
+        {
+            int speedCompare = b.currentSpeed.CompareTo(a.currentSpeed);
+            if(speedCompare != 0) return speedCompare;
+            
+            // 그래서 아군이 먼저 정렬되도록 추가 코드 (ally=0 / enemy=1)
+            int teamCompare = a.team.CompareTo(b.team);
+            if(teamCompare != 0) return teamCompare;
+            // 나중에 팀이 같을 시, 순서 정하는 코드도 필요할듯.
+
+            return 0;
+        });
     }
 
     private void CheckBattleOver()
     {
         // 전투 종료 체크 >> 모든 아군 사망 or 모든 적 사망
+        bool alliesAllDead = allies.All(u => u.isDead);
+
+        bool enemiesAllDead = enemies.All(u => u.isDead);
+        
+
+        if(alliesAllDead || enemiesAllDead)
+        {
+            Debug.Log($"end game");
+            isBattleEnd = true;
+        }
     }
 }
 
