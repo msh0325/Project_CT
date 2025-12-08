@@ -8,6 +8,7 @@ public class CSVReader : MonoBehaviour
     [Header("CSV Data File")]
     public TextAsset characterCSV;
     public TextAsset skillCSV;
+    public TextAsset effectCSV;
     public TextAsset stageCSV;
     public TextAsset waveCSV;
     
@@ -37,7 +38,7 @@ public class CSVReader : MonoBehaviour
 
             if(cols.Length < 9)
             {
-                Debug.LogWarning($"CharacterData 컬럼 개수 부족");
+                Debug.LogWarning("CharacterData 컬럼 개수 부족");
                 continue;
             }
             
@@ -93,7 +94,7 @@ public class CSVReader : MonoBehaviour
 
             if(cols.Length < 6)
             {
-                Debug.LogWarning($"SkillData 컬럼 개수 부족");
+                Debug.LogWarning("SkillData 컬럼 개수 부족");
                 continue;
             }
             
@@ -116,6 +117,68 @@ public class CSVReader : MonoBehaviour
             if(!saveFile.ContainsKey(data.skillID))
             {
                 saveFile.Add(data.skillID,data);
+            }
+        }
+    }
+
+    public void ReadEffectCSV(Dictionary<string, EffectData> saveFile)
+    {
+        if(effectCSV == null)
+        {
+            Debug.LogError("effectCSVFile이 비어있습니다");
+            return;
+        }
+
+        string[] lines = effectCSV.text.Split('\n');
+        if(lines.Length <=1)
+        {
+            Debug.LogWarning("csv 파일에 데이터가 없음");
+            return;
+        }
+
+        for(int i=0;i<lines.Length;i++)
+        {
+            string line = lines[i].Trim();
+
+            if(string.IsNullOrWhiteSpace(line)) continue;
+
+            string[] cols = line.Split(',');
+
+            if(cols.Length < 5)
+            {
+                Debug.LogWarning("Effect 컬럼 개수 부족");
+                continue;
+            }
+
+            for(int j=0;j<cols.Length;j++)
+            {
+                cols[j] = cols[j].Trim().Trim('"');
+            }
+
+            if(!Enum.TryParse<EffectType>(cols[1],out var effectType))
+            {
+                Debug.LogWarning($"effectType 파싱 실패 : {cols[1]}(line : {line})");
+                continue;
+            }
+
+            if(!Enum.TryParse<EffectTiming>(cols[2],out var effectTiming))
+            {
+                Debug.LogWarning($"effectTiming 파싱 실패 : {cols[2]}(line : {line})");
+                continue;
+            }            
+
+            EffectData data = new EffectData
+            {
+                effectID = cols[0],
+                type = effectType,
+                timing = effectTiming,
+                duration = int.Parse(cols[3]),
+                damage = int.Parse(cols[4])
+            };
+
+            if(!saveFile.ContainsKey(data.effectID))
+            {
+                saveFile.Add(data.effectID,data);
             }
         }
     }
@@ -146,7 +209,7 @@ public class CSVReader : MonoBehaviour
 
             if(cols.Length < 2)
             {
-                Debug.LogWarning($"Stage 컬럼 개수 부족");
+                Debug.LogWarning("Stage 컬럼 개수 부족");
                 continue;
             }
             
@@ -195,7 +258,7 @@ public class CSVReader : MonoBehaviour
 
             if(cols.Length < 4)
             {
-                Debug.LogWarning($"wave 컬럼 개수 부족");
+                Debug.LogWarning("wave 컬럼 개수 부족");
                 continue;
             }
             

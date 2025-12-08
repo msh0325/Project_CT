@@ -7,7 +7,7 @@ public class EffectData
     public EffectType type; // 상태이상 종류
     public EffectTiming timing; // 상태이상 체크 타이밍
     public int duration; // 상태이상 지속시간
-    public int dmg; // 상태이상 데미지?
+    public int damage; // 상태이상 데미지?
 }
 
 // 상태이상 종류
