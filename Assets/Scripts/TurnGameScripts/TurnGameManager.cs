@@ -205,7 +205,11 @@ public class TurnGameManager : MonoBehaviour
             // 그래서 아군이 먼저 정렬되도록 추가 코드 (ally=0 / enemy=1)
             int teamCompare = a.team.CompareTo(b.team);
             if(teamCompare != 0) return teamCompare;
+
             // 나중에 팀이 같을 시, 순서 정하는 코드도 필요할듯.
+            // 팀이 같으면, 앞 열부터 시작
+            int rowCompare = a.row.CompareTo(b.row);
+            if(rowCompare != 0) return rowCompare;
 
             return 0;
         });
@@ -215,7 +219,6 @@ public class TurnGameManager : MonoBehaviour
     {
         // 전투 종료 체크 >> 모든 아군 사망 or 모든 적 사망
         bool alliesAllDead = allies.All(u => u.isDead);
-
         bool enemiesAllDead = enemies.All(u => u.isDead);
 
         if (alliesAllDead)
