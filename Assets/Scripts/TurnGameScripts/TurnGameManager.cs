@@ -78,6 +78,7 @@ public class TurnGameManager : MonoBehaviour
                 
                 BattleUnit target = null;
 
+                // 임시로 각 팀의 첫번째 유닛을 공격하게 만듦.
                 if(nowUnit.team == TeamType.Ally)
                 {
                     target = enemies.FirstOrDefault(u => !u.isDead);
@@ -100,7 +101,7 @@ public class TurnGameManager : MonoBehaviour
             }
             // 6. 모든 캐릭터가 행동 종료했으면 라운드 종료 (state = RoundEnd)
             state = BattleState.RoundEnd;
-            // 전투 종료 체크하기
+            // 전투 종료 체크하기 & 웨이브 체크하기
             CheckBattleOver();
         }
 
@@ -114,11 +115,12 @@ public class TurnGameManager : MonoBehaviour
         // 아군은 플레이어가 편성한 로스터 확인하기
         // 적군은 datamanager에 있는 stagedata & wavedata로 확인하기
         
+        // waves에 선택된 stage wave 정보 넣기
         if(dataManager.waveDatas.TryGetValue(stageID,out var stageWaves))
         {
             waves.AddRange(stageWaves);
         }
-
+        // waves에서 이번 전투의 enemyID 받기
         enemyCharacterIDs.AddRange(waves[nowWaveIndex].enemyID);
 
         // 당장은 직접 입력해서 팀 데이터 읽기
@@ -177,7 +179,7 @@ public class TurnGameManager : MonoBehaviour
 
                 unit.InitSkills(dataManager.skillDatas);
 
-                Debug.Log($"new wave add new {unit.team} {dataManager.characterStats[enemy].name}");
+                Debug.Log($"new wave{nowWaveIndex} add new {unit.team} {dataManager.characterStats[enemy].name}");
             }
         }
     }

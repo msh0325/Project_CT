@@ -20,9 +20,12 @@ public class BattleUnit
     public int currentMP;
     public int currentSpeed;
 
+    public PlayerCharacterStat pcCharStat;
+    public PartyMemberSetting partyChar;
+
     public List<SkillData> skills = new();
 
-    public bool isDead => currentHP <=0;
+    public bool isDead => currentHP <= 0;
 
     public void RollSpeed(System.Random rnd)
     {
@@ -45,13 +48,42 @@ public class BattleUnit
         // 캐릭터의 스킬 세팅 미리하기
         // 적 유닛은 skill 전체를 로딩하면 되지만
         // 플레이어 유닛은 모든 스킬중 일부만 선택해서 전투하기 때문에 다른 방식 필요
-        foreach(string id in baseStat.skillID)
+
+        skills.Clear();
+        
+        if(team == TeamType.Ally)
         {
-            if (skillDB.ContainsKey(id))
+            if(partyChar == null || partychar.battleEquippedSkillID == null)
             {
-                skills.Add(skillDB[id]);
+                Debug.LogWarning($"Ally {name} 의 partyChar 또는 battleEquipSkill이 없음");
+                return;
+            }
+            // 플레이어가 선택한 스킬만 로딩
+            foreach(string id in partyChar.battleEquippedSkillID)
+            {
+                if(skillDB.TryGetValue(id,out var skill))
+                {
+                    skills.Add(skill);
+                }
+                else
+                {
+                    Debug.LogWarning($"스킬 ID {id}을 SKillDB에서 찾을 수 없음");
+                }
             }
         }
+        else
+        {
+            if(baseStat.skillID == null || baseStat.skillID.Length) return;
+            
+            // basestat에 있는 모든 스킬 로딩
+            foreach(string id in baseStat.skillID)
+            {
+                if (skillDB.ContainsKey(id))
+                {
+                    skills.Add(skillDB[id]);
+                }
+            }
+        }        
     }
 
     public void TestAttack(BattleUnit target, System.Random rnd)

@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-public class CharacterStat
+public class CharacterStat // 캐릭터 기본 세팅
 {
     public string characterID {get;set;}
     public string name {get;set;} 
@@ -14,7 +14,7 @@ public class CharacterStat
     public string[] skillID {get;set;}
 }
 
-public class PlayerCharacterStat
+public class PlayerCharacterStat // 캐릭터의 성장 / 스킬 여부
 {
     public string characterID;
 
@@ -32,12 +32,12 @@ public class PlayerCharacterStat
 
 public enum RowType
 {
-    Front = 0,
-    Middle = 1,
-    Back = 2
+    Front,
+    Middle,
+    Back
 }
 
-public class PartyMemberSetting
+public class PartyMemberSetting // 편성된 캐릭터 위치 / 선택 스킬
 {
     public string characterID;
     public RowType row;
