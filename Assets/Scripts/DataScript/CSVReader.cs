@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System;
+using System.Linq;
 
 public class CSVReader : MonoBehaviour
 {
@@ -136,7 +137,7 @@ public class CSVReader : MonoBehaviour
             return;
         }
 
-        for(int i=0;i<lines.Length;i++)
+        for(int i=1;i<lines.Length;i++)
         {
             string line = lines[i].Trim();
 
@@ -256,7 +257,7 @@ public class CSVReader : MonoBehaviour
 
             string[] cols = line.Split(',');
 
-            if(cols.Length < 4)
+            if(cols.Length < 5)
             {
                 Debug.LogWarning("wave 컬럼 개수 부족");
                 continue;
@@ -270,6 +271,7 @@ public class CSVReader : MonoBehaviour
             
             string[] enemyid = cols[2].Split('/',StringSplitOptions.RemoveEmptyEntries);
             string[] countText = cols[3].Split('/',StringSplitOptions.RemoveEmptyEntries);
+            string[] rowText = cols[4].Split('/', StringSplitOptions.RemoveEmptyEntries);
             int len = Mathf.Min(enemyid.Length, countText.Length);
             int[] counts = new int[len];
             for(int n=0;n<len;n++)
@@ -277,13 +279,32 @@ public class CSVReader : MonoBehaviour
                 counts[n] = int.Parse(countText[n]);
             }
 
+            RowType[] rows = new RowType[rowText.Length];
 
+            for(int n = 0; n < rowText.Length; n++)
+            {
+                string text = rowText[n].Trim();
+                if(!Enum.TryParse<RowType>(text,out var row))
+                {
+                    Debug.LogWarning($"rowtype 파싱 실패 : {rowText}(line : {line})");
+                    continue;
+                }
+                rows[n] = row;
+            }
+            int enemyCount = counts.Sum();
+            if(rows.Length != enemyCount)
+            {
+                Debug.LogWarning($"enemyCount랑 enemyRow 수 불일치 : {rows.Length} / {enemyCount}\n"
+                + $"wave index : {cols[1]}");
+            }
+            
             WaveData data = new WaveData
             {
                 stageID = cols[0],
                 waveIndex = int.Parse(cols[1]),
                 enemyID = enemyid,
-                enemyCount = counts
+                enemyCount = counts,
+                enemyRow = rows
             };
 
             if(!saveFile.TryGetValue(data.stageID,out var list))

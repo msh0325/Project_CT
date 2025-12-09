@@ -12,4 +12,5 @@ public class WaveData
     public int waveIndex {get;set;}
     public string[] enemyID {get;set;}
     public int[] enemyCount {get;set;}
+    public RowType[] enemyRow;
 }

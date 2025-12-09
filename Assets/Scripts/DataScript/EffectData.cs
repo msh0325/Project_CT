@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class EffectData
 {
-    public string effectID // 상태이상 ID
+    public string effectID; // 상태이상 ID
     public EffectType type; // 상태이상 종류
     public EffectTiming timing; // 상태이상 체크 타이밍
     public int duration; // 상태이상 지속시간

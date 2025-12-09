@@ -10,7 +10,7 @@ public class DataManager : MonoBehaviour
     // dictionary를 이용해 id로 캐릭터와 스킬 불러오기
     public Dictionary<string, CharacterStat> characterStats = new();
     public Dictionary<string, SkillData> skillDatas = new();
-    public Dictionary<string, EffectData> effectData = new();
+    public Dictionary<string, EffectData> effectDatas = new();
     public Dictionary<string, StageData> stageDatas = new();
     public Dictionary<string, List<WaveData>> waveDatas = new();
 
@@ -35,7 +35,7 @@ public class DataManager : MonoBehaviour
         csvReader.ReadSkillCSV(skillDatas);
 
         // effectData 불러오기
-        csvReader.ReadEffectCSV(effectCSV);
+        csvReader.ReadEffectCSV(effectDatas);
 
         // stageData 불러오기
         csvReader.ReadStageCSV(stageDatas);

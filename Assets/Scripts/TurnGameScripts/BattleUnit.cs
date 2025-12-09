@@ -22,6 +22,7 @@ public class BattleUnit
 
     public PlayerCharacterStat pcCharStat;
     public PartyMemberSetting partyChar;
+    public RowType row;
 
     public List<SkillData> skills = new();
 
@@ -32,7 +33,7 @@ public class BattleUnit
         currentSpeed = rnd.Next(baseStat.speed_min,baseStat.speed_max+1);
     }
 
-    public BattleUnit(CharacterStat stat, TeamType teamType)
+    public BattleUnit(CharacterStat stat, TeamType teamType, RowType rowType = RowType.Front)
     {
         baseStat = stat;
         team = teamType;
@@ -41,6 +42,7 @@ public class BattleUnit
         defense = stat.defense;
         currentHP = stat.hp;
         currentMP = stat.mp;
+        row = rowType;
     }
 
     public void InitSkills(Dictionary<string, SkillData> skillDB)
@@ -53,7 +55,7 @@ public class BattleUnit
         
         if(team == TeamType.Ally)
         {
-            if(partyChar == null || partychar.battleEquippedSkillID == null)
+            if(partyChar == null || partyChar.battleEquippedSkillID == null)
             {
                 Debug.LogWarning($"Ally {name} 의 partyChar 또는 battleEquipSkill이 없음");
                 return;
@@ -73,7 +75,7 @@ public class BattleUnit
         }
         else
         {
-            if(baseStat.skillID == null || baseStat.skillID.Length) return;
+            if(baseStat.skillID == null || baseStat.skillID.Length <= 1) return;
             
             // basestat에 있는 모든 스킬 로딩
             foreach(string id in baseStat.skillID)
@@ -86,6 +88,20 @@ public class BattleUnit
         }        
     }
 
+    public bool CanUseSkill(string skillID)
+    {
+        var skill = skills.Find(s => s.skillID == skillID);
+        if(currentMP < skill.useMP)
+        {
+            Debug.Log("mp 부족");
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+
     public void TestAttack(BattleUnit target, System.Random rnd)
     {
         int targetDEF = target.defense;
@@ -93,6 +109,20 @@ public class BattleUnit
         int dmg = Mathf.RoundToInt((rnd.Next(3,6) + attack) * 1.5f);
 
         int realDMG = Mathf.Max(dmg-targetDEF,0);
+        target.currentHP = Mathf.Max(target.currentHP - realDMG,0);
+
+        Debug.Log($"{name}이 {target.name}를 향해 공격. 데미지 : {dmg}, 실제 데미지 : {realDMG}");
+        Debug.Log($"{target.name}의 남은 HP {target.currentHP}");
+    }
+
+    public void UseSkill(BattleUnit target, string skillID, System.Random rnd)
+    {
+        var skill = skills.Find(s => s.skillID == skillID);
+        int targetDEF = target.defense;
+        int dmg = Mathf.RoundToInt((rnd.Next(skill.random_min,skill.random_max) + attack) * skill.multiplier);
+        int realDMG = Mathf.Max(dmg-targetDEF, 0);
+
+        currentMP = currentMP - skill.useMP;
         target.currentHP = Mathf.Max(target.currentHP - realDMG,0);
 
         Debug.Log($"{name}이 {target.name}를 향해 공격. 데미지 : {dmg}, 실제 데미지 : {realDMG}");

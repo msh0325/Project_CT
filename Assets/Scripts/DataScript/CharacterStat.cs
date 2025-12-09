@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System;
 
 public class CharacterStat // 캐릭터 기본 세팅
 {
@@ -37,6 +38,7 @@ public enum RowType
     Back
 }
 
+[Serializable]
 public class PartyMemberSetting // 편성된 캐릭터 위치 / 선택 스킬
 {
     public string characterID;
