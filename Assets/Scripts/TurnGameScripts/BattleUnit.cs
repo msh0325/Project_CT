@@ -90,6 +90,7 @@ public class BattleUnit
 
     public bool CanUseSkill(string skillID)
     {
+        // mp나 cooltime이 부족할 때 사용 못하도록 체크용도
         var skill = skills.Find(s => s.skillID == skillID);
         if(currentMP < skill.useMP)
         {
@@ -117,7 +118,9 @@ public class BattleUnit
 
     public void UseSkill(BattleUnit target, string skillID, System.Random rnd)
     {
+        // 선택한 스킬 사용
         var skill = skills.Find(s => s.skillID == skillID);
+
         int targetDEF = target.defense;
         int dmg = Mathf.RoundToInt((rnd.Next(skill.random_min,skill.random_max) + attack) * skill.multiplier);
         int realDMG = Mathf.Max(dmg-targetDEF, 0);

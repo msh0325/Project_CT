@@ -131,6 +131,7 @@ public class TurnGameManager : MonoBehaviour
                 }
                 else
                 {
+                    // 적은 자동으로 공격
                     target = allies.FirstOrDefault(u =>!u.isDead);
                     if(target != null)
                     {
@@ -150,9 +151,7 @@ public class TurnGameManager : MonoBehaviour
                     ui.Refresh();
                 }
                 
-                yield return new WaitForSeconds(2f);
-                //yield return new WaitUntil(characterTurnEnd); << 이런느낌?
-
+                yield return new WaitUntil(()=>Input.GetKeyDown(KeyCode.Space));
                 // 5. 캐릭터 행동 종료. turnOrder에 남은 캐릭터 있으면 3번부터 시작 (state = TurnEnd)
                 state = BattleState.TurnEnd;
             }
@@ -302,6 +301,7 @@ public class TurnGameManager : MonoBehaviour
         return nowWaveIndex + 1 < waves.Count;
     }
 
+    // 플레이어는 한번 소환하면 끝이지만, 적은 wave마다 소환이 필요해 따로 빼둠
     private void SpawnEnemyUnit(int waveIndex)
     {
         var wave = waves[waveIndex];
@@ -326,7 +326,9 @@ public class TurnGameManager : MonoBehaviour
                 enemies.Add(unit);
                 turnOrder.Add(unit);
                 unit.InitSkills(dataManager.skillDatas);
+
                 Debug.Log($"add new {unit.team} {unit.name}, row : {unit.row}");
+
                 var view = Instantiate(testPrefab,enemySlots[(int)unit.row].position,Quaternion.identity);
                 view.Init(unit);
                 uis.Add(view);
@@ -336,8 +338,11 @@ public class TurnGameManager : MonoBehaviour
         }
     }
 
+    // 플레이어의 행동 실행 함수
     private bool ExcutePlayerCommand(BattleUnit unit, BattleUnit target, BattleCommandType cmd)
     {
+        // 턴을 안 까먹는 행동(부 행동)은 false, 턴을 까먹는 행동(주 행동)은 true 리턴
+        // 나중에 부 행동 횟수 제한도 구현 필요
         switch(cmd)
         {
             case BattleCommandType.Attack:
@@ -363,6 +368,7 @@ public class TurnGameManager : MonoBehaviour
                 return false;
         }
     }
+
     public void OnPlayerSelectCommand(BattleCommandType cmd)
     {
         if(!isPlayerChecked) return;
