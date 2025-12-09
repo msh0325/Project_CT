@@ -1,0 +1,2 @@
+Effect_ID,Type,Timing,duration,damage
+EF_01,Bleed,TurnStart,3,5
