@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +8,8 @@ public class TurnGameManager : MonoBehaviour
 {
     // 나중에 playerData 구현하면, 거기서 받아오기
     // 당장은 직접 입력으로 테스트만
+    public static TurnGameManager instance;
+    public event Action<BattleUnit> OnPlayerTurnStart;
     
     [Header("테스트용 인스펙터")]
     public BattleUI testPrefab;
@@ -20,6 +23,7 @@ public class TurnGameManager : MonoBehaviour
     private List<BattleUI> uis = new();
     private GameObject[] enemyPrefabs = new GameObject[3];
     private BattleCommandType command;
+    private SkillData selectSkill;
     private string stageID;
     private List<BattleUnit> allies = new();
     private List<BattleUnit> enemies = new();
@@ -43,12 +47,25 @@ public class TurnGameManager : MonoBehaviour
         Item
     }
 
+    void Awake()
+    {
+        if(instance == null)
+        {
+            instance = this;
+        }
+        else
+        {
+            Destroy(this.gameObject);
+            return;
+        }
+    }
+
     void Start()
     {
         // 나중에 세부 구현할 때 데이터는 따로 매니저 빼서 관리하는게 좋을듯
         // 씬 전환되면서 데이터는 어케 옮김?
         // >> 캐릭터&스킬데이터는 DataManager(싱글톤 & dontdestroyonload), 
-        // 유동적인 정보(즉, 캐릭터 성장, 편성 등)은 PlayerData(싱글톤 & dontdestroyonload)
+        // 유동적인 정보(즉, 캐릭터 성장, 편성 등)은 PlayerData(싱글톤 & dontdestroyonload)        
 
         if(dataManager == null && DataManager.instance != null)
         {
@@ -67,8 +84,6 @@ public class TurnGameManager : MonoBehaviour
     {
         // battleState를 외부 플래그용으로 사용하고(ex 플레이어 입력은 turnrun에서만 받게 하기, UI 특정 상황에서만 띄우기 등)
         // 전체적인 전투 흐름은 coroutine 이용하기?
-
-        // 각 스테이지의 적 정보도 csv 파일로 정리하고 매니저로 관리하는게 좋을듯
     }
 
     // 전체적인 전투 흐름 코루틴
@@ -77,6 +92,7 @@ public class TurnGameManager : MonoBehaviour
         // 1. 현재 참여중인 캐릭터 체크 (state = SetUp)
         state = BattleState.SetUp;
         SetUpBattleUnits();
+        uiManager.skillUIPannel.Init();
 
         // 2. 전투 종료(isBattleEnd) 가 아니면 전투 시작
         while(!isBattleEnd)
@@ -110,18 +126,20 @@ public class TurnGameManager : MonoBehaviour
                 Debug.Log($"now {nowUnit.name}'s turn. hp : {nowUnit.currentHP} / mp : {nowUnit.currentMP}");
                 state = BattleState.RunTurn;
                 
+                nowUnit.TickCoolDown();
                 BattleUnit target = null;
 
                 // 임시로 각 팀의 첫번째 유닛을 공격하게 만듦.
                 if(nowUnit.team == TeamType.Ally)
                 {
+                    OnPlayerTurnStart?.Invoke(nowUnit);
                     bool isActionDone = false;
                     while (!isActionDone)
                     {
                         // target은 고정, uimanager의 attackbtn을 누르면 공격하도록 코드 변경
                         target = enemies.FirstOrDefault(u => !u.isDead);
                         isPlayerChecked = true;
-                        uiManager.ShowPlayerUI();
+                        
 
                         yield return new WaitUntil(()=> isPlayerChecked == false);
 
@@ -188,10 +206,9 @@ public class TurnGameManager : MonoBehaviour
                 continue;
             }
 
-            BattleUnit unit = new(baseStat, TeamType.Ally);
+            BattleUnit unit = new(baseStat, TeamType.Ally, ally.row);
 
             unit.partyChar = ally;
-            unit.row = ally.row;
             allies.Add(unit);
             turnOrder.Add(unit);
 
@@ -321,8 +338,7 @@ public class TurnGameManager : MonoBehaviour
 
             for(int c = 0; c < count; c++)
             {
-                BattleUnit unit = new(baseStat,TeamType.Enemy);
-                unit.row = wave.enemyRow[rowCount];
+                BattleUnit unit = new(baseStat,TeamType.Enemy, wave.enemyRow[rowCount]);
                 enemies.Add(unit);
                 turnOrder.Add(unit);
                 unit.InitSkills(dataManager.skillDatas);
@@ -350,9 +366,9 @@ public class TurnGameManager : MonoBehaviour
                 return true;
             
             case BattleCommandType.Skill:
-                if(!unit.CanUseSkill(unit.skills[0].skillID)) return false;
+                if(!unit.CanUseSkill(selectSkill.skillID)) return false;
 
-                if(target != null) unit.UseSkill(target,unit.skills[0].skillID,rnd);
+                if(target != null) unit.UseSkill(target,selectSkill.skillID,rnd);
                 Debug.Log("use skill");
                 return true;
 
@@ -369,11 +385,12 @@ public class TurnGameManager : MonoBehaviour
         }
     }
 
-    public void OnPlayerSelectCommand(BattleCommandType cmd)
+    public void OnPlayerSelectCommand(BattleCommandType cmd, SkillData skill = null)
     {
         if(!isPlayerChecked) return;
         command = cmd;
         isPlayerChecked = false;
+        selectSkill = skill;
     }
 }
 

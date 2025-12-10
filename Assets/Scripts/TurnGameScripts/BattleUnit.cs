@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public enum TeamType
@@ -25,6 +26,8 @@ public class BattleUnit
     public RowType row;
 
     public List<SkillData> skills = new();
+    public Dictionary<string,int> cooldowns = new();
+    public int subActionCount;
 
     public bool isDead => currentHP <= 0;
 
@@ -33,7 +36,7 @@ public class BattleUnit
         currentSpeed = rnd.Next(baseStat.speed_min,baseStat.speed_max+1);
     }
 
-    public BattleUnit(CharacterStat stat, TeamType teamType, RowType rowType = RowType.Front)
+    public BattleUnit(CharacterStat stat, TeamType teamType, RowType rowType)
     {
         baseStat = stat;
         team = teamType;
@@ -85,7 +88,7 @@ public class BattleUnit
                     skills.Add(skillDB[id]);
                 }
             }
-        }        
+        }  
     }
 
     public bool CanUseSkill(string skillID)
@@ -97,10 +100,14 @@ public class BattleUnit
             Debug.Log("mp 부족");
             return false;
         }
-        else
+        
+        if(cooldowns.TryGetValue(skillID,out int cd) && cd > 0)
         {
-            return true;
+            Debug.Log($"cooldown 중 : {cd}");
+            return false;
         }
+
+        return true;
     }
 
     public void TestAttack(BattleUnit target, System.Random rnd)
@@ -128,7 +135,35 @@ public class BattleUnit
         currentMP = currentMP - skill.useMP;
         target.currentHP = Mathf.Max(target.currentHP - realDMG,0);
 
+        if(skill.effectID != null)
+        {
+            // 상태이상 효과
+            Debug.Log($"effect : {skill.effectID}");
+        }
+
+        StartCoolDown(skill);
+
         Debug.Log($"{name}이 {target.name}를 향해 공격. 데미지 : {dmg}, 실제 데미지 : {realDMG}");
         Debug.Log($"{target.name}의 남은 HP {target.currentHP}");
+        Debug.Log($"skill cooltime : {cooldowns[skill.skillID]}");
+    }
+
+    private void StartCoolDown(SkillData skill)
+    {
+        if(skill.coolTime > 0)
+        {
+            cooldowns[skill.skillID] = skill.coolTime;
+            Debug.Log($"{skill.skillName} : {cooldowns[skill.skillID]}");
+        }
+    }
+
+    public void TickCoolDown()
+    {
+        var keys = cooldowns.Keys.ToList();
+
+        foreach(var key in keys)
+        {
+            cooldowns[key] = Mathf.Max(cooldowns[key]-1,0);
+        }
     }
 }
