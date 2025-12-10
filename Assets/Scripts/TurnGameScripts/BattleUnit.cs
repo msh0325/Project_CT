@@ -106,8 +106,8 @@ public class BattleUnit
     public void TestAttack(BattleUnit target, System.Random rnd)
     {
         int targetDEF = target.defense;
-        // (랜덤 보정 데미지 + 공격력) * 배율
-        int dmg = Mathf.RoundToInt((rnd.Next(3,6) + attack) * 1.5f);
+        // (공격력 * 배율) + 랜덤 보정 데미지
+        int dmg = Mathf.RoundToInt((attack * 1.5f) + rnd.Next(3,6));
 
         int realDMG = Mathf.Max(dmg-targetDEF,0);
         target.currentHP = Mathf.Max(target.currentHP - realDMG,0);
@@ -122,7 +122,7 @@ public class BattleUnit
         var skill = skills.Find(s => s.skillID == skillID);
 
         int targetDEF = target.defense;
-        int dmg = Mathf.RoundToInt((rnd.Next(skill.random_min,skill.random_max) + attack) * skill.multiplier);
+        int dmg = Mathf.RoundToInt((attack * skill.multiplier) + rnd.Next(skill.random_min,skill.random_max));
         int realDMG = Mathf.Max(dmg-targetDEF, 0);
 
         currentMP = currentMP - skill.useMP;

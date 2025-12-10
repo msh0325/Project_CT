@@ -93,7 +93,7 @@ public class CSVReader : MonoBehaviour
 
             string[] cols = line.Split(',');
 
-            if(cols.Length < 6)
+            if(cols.Length < 11)
             {
                 Debug.LogWarning("SkillData 컬럼 개수 부족");
                 continue;
@@ -105,16 +105,49 @@ public class CSVReader : MonoBehaviour
                 cols[j] = cols[j].Trim().Trim('"');
             }
 
+            if(!Enum.TryParse<SkillType>(cols[7],out var skType))
+            {
+                Debug.LogWarning($"skilldata 파싱 실패 : {cols[7]}(line : {line})");
+                continue;
+            }
+
+            if(!Enum.TryParse<TargetType>(cols[8],out var tgType))
+            {
+                Debug.LogWarning($"targetdata 파싱 실패 : {cols[8]}(line : {line})");
+                continue;
+            }
+
+            string[] rowsText = cols[9].Split("/",StringSplitOptions.RemoveEmptyEntries);
+
+            RowType[] rows = new RowType[rowsText.Length];
+
+            for(int n = 0; n < rowsText.Length; n++)
+            {
+                string text = rowsText[n].Trim();
+                
+                if(!Enum.TryParse<RowType>(text,out var row))
+                {
+                    Debug.LogWarning($"rowtype 파싱 실패 : {text}(line : {line})");
+                    continue;
+                }
+                rows[n] = row;
+            }
+
             SkillData data = new SkillData
             {
                 skillID = cols[0],
-                random_min = int.Parse(cols[1]),
-                random_max = int.Parse(cols[2]),
-                multiplier = float.Parse(cols[3]),
-                useMP = int.Parse(cols[4]),
-                coolTime = int.Parse(cols[5])
+                skillName = cols[1],
+                random_min = int.Parse(cols[2]),
+                random_max = int.Parse(cols[3]),
+                multiplier = float.Parse(cols[4]),
+                useMP = int.Parse(cols[5]),
+                coolTime = int.Parse(cols[6]),
+                skillType = skType,
+                targetType = tgType,
+                range = rows,
+                effectID = cols[10].Split("/",StringSplitOptions.RemoveEmptyEntries)
             };
-            
+
             if(!saveFile.ContainsKey(data.skillID))
             {
                 saveFile.Add(data.skillID,data);
