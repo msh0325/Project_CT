@@ -21,7 +21,6 @@ public class SkillPannel : MonoBehaviour
             GameObject obj = Instantiate(btnPrefab,transform);
             skillButtons[i] = obj.GetComponent<Button>();
         }
-        Debug.Log(skillButtons.Length);
     }
 
     public void SettingSkills(BattleUnit unit)
