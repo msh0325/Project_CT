@@ -338,6 +338,7 @@ MonoBehaviour:
     - TEST_SK01
     - TEST_SK02
     - TEST_SK03
+    - TEST_SK05
   nowSelectStageID: TEST_ST01
 --- !u!4 &421775849
 Transform:
@@ -841,6 +842,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96b2400a3eb0b20408e77d680e25b4e5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mainCam: {fileID: 1969651101}
   playerUIPannel: {fileID: 2042374419}
   skillUIPannel: {fileID: 1449519240}
   attackBtn: {fileID: 443353211}
