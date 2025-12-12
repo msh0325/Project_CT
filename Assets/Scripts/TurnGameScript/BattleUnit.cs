@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -25,12 +26,14 @@ public class BattleUnit
     public PartyMemberSetting partyChar;
     public RowType row;
 
-    public List<SkillData> skills = new();
+    public Dictionary<string, SkillData> skills = new();
     public Dictionary<string,int> cooldowns = new();
 
-    public int mainActionCount = 1;
+    const int BaseMainAction = 1;
+    const int BaseSubAction = 2;
+    public int mainActionCount;
     public int leftMainAction;
-    public int subActionCount = 2;
+    public int subActionCount;
     public int leftSubAction;
 
     public bool isDead => currentHP <= 0;
@@ -40,15 +43,24 @@ public class BattleUnit
         currentSpeed = rnd.Next(baseStat.speed_min,baseStat.speed_max+1);
     }
 
-    public BattleUnit(CharacterStat stat, TeamType teamType, RowType rowType)
+    public BattleUnit(CharacterStat stat, TeamType teamType, RowType rowType,
+     PlayerCharacterStat bonusStat = null, PartyMemberSetting partyMem = null)
     {
         baseStat = stat;
         team = teamType;
         name = stat.name;
-        attack = stat.attack;
-        defense = stat.defense;
-        currentHP = stat.hp;
-        currentMP = stat.mp;
+        pcCharStat = bonusStat;
+        partyChar = partyMem;
+
+        bool isBonusNull = bonusStat == null;
+        attack = stat.attack + (isBonusNull? 0 : bonusStat.bonusAttack);
+        defense = stat.defense + (isBonusNull? 0 : bonusStat.bonusDefense);
+        currentHP = stat.hp + (isBonusNull ? 0 : bonusStat.bonusHP);
+        currentMP = stat.mp + (isBonusNull ? 0  : bonusStat.bonusMP);
+        mainActionCount = BaseMainAction + (isBonusNull ? 0 : bonusStat.bonusMainAction);
+        subActionCount = BaseSubAction + (isBonusNull ? 0 : bonusStat.bonusSubAction);   
+        leftMainAction = mainActionCount;
+        leftSubAction = subActionCount;
         row = rowType;
     }
 
@@ -57,8 +69,6 @@ public class BattleUnit
         // 캐릭터의 스킬 세팅 미리하기
         // 적 유닛은 skill 전체를 로딩하면 되지만
         // 플레이어 유닛은 모든 스킬중 일부만 선택해서 전투하기 때문에 다른 방식 필요
-        leftMainAction = mainActionCount;
-        leftSubAction = subActionCount;
         skills.Clear();
         
         if(team == TeamType.Ally)
@@ -73,7 +83,7 @@ public class BattleUnit
             {
                 if(skillDB.TryGetValue(id,out var skill))
                 {
-                    skills.Add(skill);
+                    skills.Add(skill.skillID, skill);
                 }
                 else
                 {
@@ -90,7 +100,7 @@ public class BattleUnit
             {
                 if (skillDB.ContainsKey(id))
                 {
-                    skills.Add(skillDB[id]);
+                    skills.Add(id, skillDB[id]);
                 }
             }
         }  
@@ -105,7 +115,7 @@ public class BattleUnit
     public bool CanUseSkill(string skillID)
     {
         // mp나 cooltime이 부족할 때 사용 못하도록 체크용도
-        var skill = skills.Find(s => s.skillID == skillID);
+        var skill = skills[skillID];
         if(currentMP < skill.useMP)
         {
             Debug.Log("mp 부족");
@@ -164,31 +174,36 @@ public class BattleUnit
         Debug.Log($"{target.name}의 남은 HP {target.currentHP}");
     }
 
-    public void UseSkill(BattleUnit target, string skillID, System.Random rnd)
+    public void ConsumeSkillCost(SkillData skill)
+    {
+        currentMP -= skill.useMP;
+        StartCoolDown(skill);
+    }
+
+    public int CalcSkillRealDamage(SkillData skill, System.Random rnd)
+    {
+        int randomBonus = rnd.Next(skill.random_min, skill.random_max);
+        float dmg = (attack * skill.multiplier) + randomBonus;
+        return Mathf.RoundToInt(dmg);
+    }
+
+    public void TakeDamage(BattleUnit target, int dmg)
+    {
+        int realDMG = dmg-target.defense;
+        target.currentHP = Mathf.Max(target.currentHP - realDMG, 0);
+
+        Debug.Log($"{name}이 {target.name}를 향해 공격. 데미지 : {dmg}, 실제 데미지 : {realDMG}");
+        Debug.Log($"{target.name}의 남은 HP {target.currentHP}");
+    }
+
+    public void UseSingleSkill(BattleUnit target,SkillData skill, int dmg)
     {
         // 선택한 스킬 사용
-        var skill = skills.Find(s => s.skillID == skillID);
         Debug.Log($"skilltype : {skill.skillType}");
         switch (skill.skillType)
         {
             case SkillType.Damage:
-                int targetDEF = target.defense;
-                int dmg = Mathf.RoundToInt((attack * skill.multiplier) + rnd.Next(skill.random_min,skill.random_max));
-                int realDMG = Mathf.Max(dmg-targetDEF, 0);
-
-                currentMP = currentMP - skill.useMP;
-                target.currentHP = Mathf.Max(target.currentHP - realDMG,0);
-
-                if(skill.effectID != null)
-                {
-                    // 상태이상 효과
-                    Debug.Log($"effect : {skill.effectID}");
-                }
-
-                StartCoolDown(skill);
-
-                Debug.Log($"{name}이 {target.name}를 향해 공격. 데미지 : {dmg}, 실제 데미지 : {realDMG}");
-                Debug.Log($"{target.name}의 남은 HP {target.currentHP}");
+                TakeDamage(target,dmg);
                 break;
 
             case SkillType.Buff:
@@ -198,13 +213,11 @@ public class BattleUnit
                 break;
             
             case SkillType.Heal:
-                int heal = Mathf.RoundToInt((attack * skill.multiplier) + rnd.Next(skill.random_min,skill.random_max));
+                target.currentHP = Mathf.Min(target.currentHP + dmg, target.baseStat.hp);
 
-                target.currentHP = Mathf.Min(target.currentHP + heal, target.baseStat.hp);
+                //StartCoolDown(skill);
 
-                StartCoolDown(skill);
-
-                Debug.Log($"{name}이 {target.name}을 향해 힐. 힐량 : {heal}");
+                Debug.Log($"{name}이 {target.name}을 향해 힐. 힐량 : {dmg}");
                 Debug.Log($"{target.name}의 hp : {target.currentHP}");
                 break;
         }   
@@ -227,5 +240,15 @@ public class BattleUnit
         {
             cooldowns[key] = Mathf.Max(cooldowns[key]-1,0);
         }
+    }
+
+    public int GetSkillCoolTime(SkillData skill)
+    {
+        if(cooldowns.TryGetValue(skill.skillID,out var cooltime))
+        {
+            return cooltime;
+        }
+        
+        return -1;
     }
 }

@@ -7,6 +7,7 @@ public class SkillPannel : MonoBehaviour
     private TurnGameManager gm;
     public BattleUIManager uiManager;
     private Button[] skillButtons;
+    private SkillData[] skills;
     [SerializeField] private GameObject btnPrefab;
     void Start()
     {
@@ -16,6 +17,7 @@ public class SkillPannel : MonoBehaviour
     public void Init()
     {
         skillButtons = new Button[4];
+        skills = new SkillData[4];
         for(int i = 0; i < skillButtons.Length; i++)
         {
             GameObject obj = Instantiate(btnPrefab,transform);
@@ -25,12 +27,14 @@ public class SkillPannel : MonoBehaviour
 
     public void SettingSkills(BattleUnit unit)
     {
-        int btnCount = unit.skills.Count;
+        int btnCount = unit.partyChar.battleEquippedSkillID.Count;
         for(int i = 0; i < skillButtons.Length; i++)
         {
             if(i < unit.skills.Count)
             {
-                SkillData skill = unit.skills[i];
+                string skillid = unit.partyChar.battleEquippedSkillID[i];
+                SkillData skill = unit.skills[skillid];
+                skills[i] = skill;
                 skillButtons[i].GetComponentInChildren<TMP_Text>().text = skill.skillName;
                 skillButtons[i].onClick.RemoveAllListeners();
                 skillButtons[i].onClick.AddListener(() =>
@@ -41,6 +45,27 @@ public class SkillPannel : MonoBehaviour
             else
             {
                 skillButtons[i].gameObject.SetActive(false);
+            }
+        }
+    }
+
+    public void CheckCanUseSkill(BattleUnit unit)
+    {
+        for(int i = 0; i < skillButtons.Length; i++)
+        {
+            if(!unit.CanUseSkill(skills[i].skillID))
+            {
+                skillButtons[i].interactable = false;
+                int cooltime = unit.GetSkillCoolTime(skills[i]);
+                if(cooltime > 0)
+                {
+                    skillButtons[i].GetComponentInChildren<TMP_Text>().text = cooltime.ToString();
+                }
+            }
+            else
+            {
+                skillButtons[i].interactable = true;
+                skillButtons[i].GetComponentInChildren<TMP_Text>().text = skills[i].skillName;
             }
         }
     }

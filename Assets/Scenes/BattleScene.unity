@@ -331,6 +331,46 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a88cc816f10cb3d46976c8c10dc58b73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  roster:
+  - characterID: TEST_01
+    bonusHP: 0
+    bonusMP: 0
+    bonusAttack: 0
+    bonusDefense: 0
+    bonusMainAction: 1
+    bonusSubAction: 0
+    learnedSkillID:
+    - TEST_SK01
+    - TEST_SK02
+    - TEST_SK03
+    - TEST_SK04
+    - TEST_SK05
+    defaultEquippedSkillID:
+    - TEST_SK01
+    - TEST_SK02
+    - TEST_SK03
+    - TEST_SK05
+    isSelectable: 1
+  - characterID: TEST_04
+    bonusHP: 0
+    bonusMP: 0
+    bonusAttack: 0
+    bonusDefense: 0
+    bonusMainAction: 0
+    bonusSubAction: 1
+    learnedSkillID:
+    - TEST_SK01
+    - TEST_SK02
+    - TEST_SK03
+    - TEST_SK04
+    - TEST_SK05
+    - TEST_SK06
+    defaultEquippedSkillID:
+    - TEST_SK01
+    - TEST_SK02
+    - TEST_SK03
+    - TEST_SK06
+    isSelectable: 1
   selectedParty:
   - characterID: TEST_01
     row: 1
@@ -339,6 +379,13 @@ MonoBehaviour:
     - TEST_SK02
     - TEST_SK03
     - TEST_SK05
+  - characterID: TEST_04
+    row: 2
+    battleEquippedSkillID:
+    - TEST_SK01
+    - TEST_SK02
+    - TEST_SK03
+    - TEST_SK06
   nowSelectStageID: TEST_ST01
 --- !u!4 &421775849
 Transform:

@@ -89,6 +89,7 @@ public class BattleUIManager : MonoBehaviour
             if(unit != null && candidateSet.Contains(unit))
             {
                 onTargetSelected?.Invoke(unit);
+                SwitchShowUI();
                 ExitTargetSelectMode();
             }
         }
@@ -136,6 +137,13 @@ public class BattleUIManager : MonoBehaviour
         skillUIPannel.SettingSkills(unit);
     }
 
+    public void SwitchShowUI()
+    {
+        bool on = playerUIPannel.activeSelf;
+        playerUIPannel.SetActive(!on);
+        skillUIPannel.gameObject.SetActive(on);
+    }
+
     public void HidePlayerUI()
     {
         playerUIPannel.SetActive(false);
@@ -153,6 +161,7 @@ public class BattleUIManager : MonoBehaviour
         isTargetSelectMode = false;
         candidateSet.Clear();
         onTargetSelected = null;
+        HidePlayerUI();
     }
 
     private void OnDestroy()

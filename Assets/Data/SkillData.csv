@@ -4,3 +4,4 @@ TEST_SK02,테스트전체,-3,3,1.4,30,3,Damage,EnemyAll,Front/Middle/Back,
 TEST_SK03,테스트출혈,0,5,1.1,12,2,Damage,EnemySingle,Back,Bleed,
 TEST_SK04,테스트독,0,3,0.9,10,3,Damage,EnemySingle,Front/Middle,Poison
 TEST_SK05,테스트힐,-1,3,1,15,3,Heal,AllySingle,Front/Middle/Back,
+TEST_SK06,테스트힐2,0,5,1,10,2,Heal,Self,Front/Middle/Back,

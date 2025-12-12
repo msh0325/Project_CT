@@ -38,6 +38,7 @@ public class TurnGameManager : MonoBehaviour
     private int currentTurnIndex = 0;
     public BattleState state = BattleState.Idle;
     private bool isBattleEnd = false;
+    private bool isWaveEnd = false;
     private System.Random rnd = new ();
 
     public enum BattleCommandType
@@ -106,6 +107,7 @@ public class TurnGameManager : MonoBehaviour
             }
             // 전투 참여 캐릭터 속도 굴림 후 속도 순 정렬하기
             state = BattleState.RoundStart;
+            bool breakRound = false;
             RollUnitSpeed();
             
             for(int i = 0; i < turnOrder.Count; i++)
@@ -128,6 +130,7 @@ public class TurnGameManager : MonoBehaviour
                 state = BattleState.RunTurn;
                 
                 nowUnit.TickCoolDown();
+
                 BattleUnit target = null;
 
                 if(nowUnit.team == TeamType.Ally)
@@ -137,12 +140,27 @@ public class TurnGameManager : MonoBehaviour
                     nowUnit.OnTurnStart();
                     while (!isActionDone)
                     {
+                        uiManager.skillUIPannel.CheckCanUseSkill(nowUnit);
                         isPlayerChecked = true;
 
                         yield return new WaitUntil(()=> isPlayerChecked == false);
 
                         target = selectedTarget;
                         isActionDone = ExcutePlayerCommand(nowUnit,target,command);
+                        foreach(var ui in uis) ui.Refresh();
+
+                        if (CheckBattleOver())
+                        {
+                            state = BattleState.Idle;
+                            yield break;
+                        }
+
+                        if (isWaveEnd)
+                        {
+                            isWaveEnd = false;
+                            breakRound = true;
+                            break;
+                        }
                     }
                 }
                 else
@@ -153,8 +171,21 @@ public class TurnGameManager : MonoBehaviour
                     {
                         nowUnit.TestAttack(target,rnd);                    
                     }
+                    if (CheckBattleOver())
+                    {
+                        state = BattleState.Idle;
+                        yield break;
+                    }
+                    
+                    if (isWaveEnd)
+                    {
+                        isWaveEnd = false;
+                        breakRound = true;
+                        break;
+                    }
                 }
-                uiManager.HidePlayerUI();            
+                uiManager.HidePlayerUI(); 
+                if(breakRound) break;           
 
                 // 행동 직후 게임 종료 체크
                 if(CheckBattleOver())
@@ -204,16 +235,16 @@ public class TurnGameManager : MonoBehaviour
                 Debug.LogWarning($"캐릭터 id : {ally.characterID}가 characterStat에 없음");
                 continue;
             }
+            pcDataManager.rosterMap.TryGetValue(ally.characterID, out var bonus);
+            pcDataManager.selectedPartyMap.TryGetValue(ally.characterID,out var party);
 
-            BattleUnit unit = new(baseStat, TeamType.Ally, ally.row);
+            BattleUnit unit = new(baseStat, TeamType.Ally, ally.row, bonus, party);
 
             unit.partyChar = ally;
             allies.Add(unit);
             turnOrder.Add(unit);
 
             unit.InitSkills(dataManager.skillDatas);
-
-            Debug.Log($"add new {unit.team} {unit.name}, row : {unit.row}");
 
             // 임시 프리팹 생성
             var view = Instantiate(testPrefab,allySlots[(int)unit.row].position,Quaternion.identity);
@@ -229,7 +260,6 @@ public class TurnGameManager : MonoBehaviour
     {
         turnOrder.Clear();
         enemies.Clear();
-        uis.Clear();
 
         foreach(var ally in allies)
         {
@@ -291,6 +321,7 @@ public class TurnGameManager : MonoBehaviour
             if (HasNextWave())
             {
                 nowWaveIndex++;
+                isWaveEnd = true;
                 Debug.Log("next wave");
                 uiManager.ForceExitSelectMode();
                 for(int i = 0; i < enemyPrefabs.Length; i++)
@@ -372,7 +403,34 @@ public class TurnGameManager : MonoBehaviour
                 if(!unit.CanUseMainAction()) return true;
                 if(!unit.CanUseSkill(selectSkill.skillID)) return false;
 
-                if(target != null) unit.UseSkill(target,selectSkill.skillID,rnd);
+                unit.ConsumeSkillCost(selectSkill);
+                int dmg = unit.CalcSkillRealDamage(selectSkill,rnd);
+
+                switch (selectSkill.targetType)
+                {
+                    case TargetType.AllySingle:
+                    case TargetType.EnemySingle:
+                    case TargetType.Self:
+                        unit.UseSingleSkill(target,selectSkill,dmg);
+                        break;
+                    
+                    case TargetType.AllyAll:
+                        var targets = allies.Where(u=>!u.isDead);
+                        foreach(var t in targets)
+                        {
+                            unit.TakeDamage(t,dmg);
+                        }
+                        break;
+                    
+                    case TargetType.EnemyAll:
+                        var tar = enemies.Where(u=>!u.isDead);
+                        foreach(var t in tar)
+                        {
+                            unit.TakeDamage(t,dmg);
+                        }
+                        break;
+
+                }
                 unit.UseMainAction();
                 Debug.Log("use skill");
                 return !unit.CanUseMainAction();
@@ -395,7 +453,8 @@ public class TurnGameManager : MonoBehaviour
     private List<BattleUnit> AttackRangeTargets(BattleUnit user)
     {
         List<BattleUnit> source = user.team == TeamType.Ally? enemies:allies;
-        return source;
+        var candidates = source.Where(u=>!u.isDead).ToList();
+        return candidates;
     }
 
     // 플레이어의 스킬 타겟 설정
