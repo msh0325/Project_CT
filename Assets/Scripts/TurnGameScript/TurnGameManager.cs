@@ -108,6 +108,11 @@ public class TurnGameManager : MonoBehaviour
             // 전투 참여 캐릭터 속도 굴림 후 속도 순 정렬하기
             state = BattleState.RoundStart;
             bool breakRound = false;
+            foreach(var u in turnOrder)
+            {
+                u.CheckEffect(state);
+            }
+
             RollUnitSpeed();
             
             for(int i = 0; i < turnOrder.Count; i++)
@@ -127,6 +132,7 @@ public class TurnGameManager : MonoBehaviour
                 if(nowUnit.isDead) continue;                
                 // 4. 캐릭터 행동 대기. 플레이어의 주/부 행동 입력 or 적의 AI 입력 (state = RunTurn)
                 Debug.Log($"now {nowUnit.name}'s turn. hp : {nowUnit.currentHP} / mp : {nowUnit.currentMP}");
+                nowUnit.CheckEffect(state);
                 state = BattleState.RunTurn;
                 
                 nowUnit.TickCoolDown();
@@ -187,6 +193,10 @@ public class TurnGameManager : MonoBehaviour
                 uiManager.HidePlayerUI(); 
                 if(breakRound) break;           
 
+                // 5. 캐릭터 행동 종료. turnOrder에 남은 캐릭터 있으면 3번부터 시작 (state = TurnEnd)
+                state = BattleState.TurnEnd;
+                nowUnit.CheckEffect(state);
+
                 // 행동 직후 게임 종료 체크
                 if(CheckBattleOver())
                 {
@@ -198,13 +208,14 @@ public class TurnGameManager : MonoBehaviour
                 {
                     ui.Refresh();
                 }
-                
                 yield return new WaitUntil(()=>Input.GetKeyDown(KeyCode.Space));
-                // 5. 캐릭터 행동 종료. turnOrder에 남은 캐릭터 있으면 3번부터 시작 (state = TurnEnd)
-                state = BattleState.TurnEnd;
             }
             // 6. 모든 캐릭터가 행동 종료했으면 라운드 종료 (state = RoundEnd)
             state = BattleState.RoundEnd;
+            foreach(var u in turnOrder)
+            {
+                u.CheckEffect(state);
+            }
             // 전투 종료 체크하기 & 웨이브 체크하기. 
             // 나중에 라운드 종료 상태이상 적용하면 그거로 죽고 끝날 수 있으니 나중에 다시 주석 풀기
             //CheckBattleOver();
@@ -375,7 +386,7 @@ public class TurnGameManager : MonoBehaviour
                 turnOrder.Add(unit);
                 unit.InitSkills(dataManager.skillDatas);
 
-                Debug.Log($"add new {unit.team} {unit.name}, row : {unit.row}");
+                //Debug.Log($"add new {unit.team} {unit.name}, row : {unit.row}");
 
                 var view = Instantiate(testPrefab,enemySlots[(int)unit.row].position,Quaternion.identity);
                 view.Init(unit);
@@ -411,14 +422,14 @@ public class TurnGameManager : MonoBehaviour
                     case TargetType.AllySingle:
                     case TargetType.EnemySingle:
                     case TargetType.Self:
-                        unit.UseSingleSkill(target,selectSkill,dmg);
+                        unit.TakeDamage(target,selectSkill,dmg);
                         break;
                     
                     case TargetType.AllyAll:
                         var targets = allies.Where(u=>!u.isDead);
                         foreach(var t in targets)
                         {
-                            unit.TakeDamage(t,dmg);
+                            unit.TakeDamage(t,selectSkill,dmg);
                         }
                         break;
                     
@@ -426,7 +437,7 @@ public class TurnGameManager : MonoBehaviour
                         var tar = enemies.Where(u=>!u.isDead);
                         foreach(var t in tar)
                         {
-                            unit.TakeDamage(t,dmg);
+                            unit.TakeDamage(t,selectSkill,dmg);
                         }
                         break;
 

@@ -1,2 +1,6 @@
-Effect_ID,Type,Timing,duration,damage
-EF_01,Bleed,TurnStart,3,5
+Effect_ID,Type,Timing,StackType,duration,damage,maxStack,StatusType
+EF_01,Bleed,TurnStart,AddDamage,3,5,30,None
+EF_02,Poison,TurnEnd,AddDamage,4,3,30,None
+EF_03,StatBuff,RoundStart,ResetDuration,2,1,1,Speed
+EF_04,StatDebuff,RoundStart,ResetDuration,3,1,1,Defense
+EF_05,Burn,TurnStart,AddDamage,3,3,10,None

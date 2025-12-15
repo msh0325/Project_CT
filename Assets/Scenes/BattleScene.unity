@@ -318,7 +318,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &421775848
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -333,7 +333,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   roster:
   - characterID: TEST_01
-    bonusHP: 0
+    bonusHP: 5
     bonusMP: 0
     bonusAttack: 0
     bonusDefense: 0
@@ -367,8 +367,8 @@ MonoBehaviour:
     - TEST_SK06
     defaultEquippedSkillID:
     - TEST_SK01
-    - TEST_SK02
     - TEST_SK03
+    - TEST_SK04
     - TEST_SK06
     isSelectable: 1
   selectedParty:
@@ -383,8 +383,8 @@ MonoBehaviour:
     row: 2
     battleEquippedSkillID:
     - TEST_SK01
-    - TEST_SK02
     - TEST_SK03
+    - TEST_SK04
     - TEST_SK06
   nowSelectStageID: TEST_ST01
 --- !u!4 &421775849
@@ -996,7 +996,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1036294621
 MonoBehaviour:
   m_ObjectHideFlags: 0

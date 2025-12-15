@@ -178,7 +178,7 @@ public class CSVReader : MonoBehaviour
 
             string[] cols = line.Split(',');
 
-            if(cols.Length < 5)
+            if(cols.Length < 8)
             {
                 Debug.LogWarning("Effect 컬럼 개수 부족");
                 continue;
@@ -195,19 +195,34 @@ public class CSVReader : MonoBehaviour
                 continue;
             }
 
-            if(!Enum.TryParse<EffectTiming>(cols[2],out var effectTiming))
+            if(!Enum.TryParse<BattleState>(cols[2],out var effectTiming))
             {
                 Debug.LogWarning($"effectTiming 파싱 실패 : {cols[2]}(line : {line})");
                 continue;
-            }            
+            }
+
+            if(!Enum.TryParse<StackType>(cols[3],out var stackType))
+            {
+                Debug.LogWarning($"stacktype 파싱 실패 : {cols[3]}(line:{line})");
+                continue;
+            }
+
+            if(!Enum.TryParse<StatusType>(cols[7],out var statusType))
+            {
+                Debug.LogWarning($"statustype 파싱 실패 : {cols[7]}(line:{line})");
+                continue;
+            }
 
             EffectData data = new EffectData
             {
                 effectID = cols[0],
                 type = effectType,
                 timing = effectTiming,
-                duration = int.Parse(cols[3]),
-                damage = int.Parse(cols[4])
+                stack = stackType,
+                duration = int.Parse(cols[4]),
+                damage = int.Parse(cols[5]),
+                maxDamage = int.Parse(cols[6]),
+                status = statusType
             };
 
             if(!saveFile.ContainsKey(data.effectID))

@@ -89,7 +89,10 @@ public class BattleUIManager : MonoBehaviour
             if(unit != null && candidateSet.Contains(unit))
             {
                 onTargetSelected?.Invoke(unit);
-                SwitchShowUI();
+                if (!playerUIPannel.activeSelf)
+                {
+                    SwitchShowUI();
+                }
                 ExitTargetSelectMode();
             }
         }

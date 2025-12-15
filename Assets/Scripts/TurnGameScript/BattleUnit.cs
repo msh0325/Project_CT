@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Android.Gradle.Manifest;
 using UnityEngine;
 
 public enum TeamType
@@ -15,12 +16,29 @@ public class BattleUnit
     public TeamType team;
 
     public string name;
-    public int attack;
-    public int defense;
+    public int baseAttack;
+    public int baseDefense;
+    public int baseMaxHP;
+    public int baseMaxMP;
+    public int baseSpeedMin;
+    public int baseSpeedMax;
 
     public int currentHP;
     public int currentMP;
+    public int attack => baseAttack + attackBonus;
+    public int defense => baseDefense + defenseBonus;
+    public int maxHP => baseMaxHP;
+    public int maxMP => baseMaxMP;
+    public int speed_min => baseSpeedMin + bonusSpeed_min;
+    public int speed_max => baseSpeedMax + bonusSpeed_max;
     public int currentSpeed;
+
+    private int attackBonus;
+    private int defenseBonus;
+    private int bonusSpeed_min;
+    private int bonusSpeed_max;
+
+    public List<ActiveEffect> activeEffects = new();
 
     public PlayerCharacterStat pcCharStat;
     public PartyMemberSetting partyChar;
@@ -40,7 +58,7 @@ public class BattleUnit
 
     public void RollSpeed(System.Random rnd)
     {
-        currentSpeed = rnd.Next(baseStat.speed_min,baseStat.speed_max+1);
+        currentSpeed = rnd.Next(speed_min,speed_max+1);
     }
 
     public BattleUnit(CharacterStat stat, TeamType teamType, RowType rowType,
@@ -53,10 +71,16 @@ public class BattleUnit
         partyChar = partyMem;
 
         bool isBonusNull = bonusStat == null;
-        attack = stat.attack + (isBonusNull? 0 : bonusStat.bonusAttack);
-        defense = stat.defense + (isBonusNull? 0 : bonusStat.bonusDefense);
-        currentHP = stat.hp + (isBonusNull ? 0 : bonusStat.bonusHP);
-        currentMP = stat.mp + (isBonusNull ? 0  : bonusStat.bonusMP);
+        baseAttack = stat.attack + (isBonusNull? 0 : bonusStat.bonusAttack);
+        baseDefense = stat.defense + (isBonusNull? 0 : bonusStat.bonusDefense);
+        baseMaxHP = stat.hp + (isBonusNull ? 0 : bonusStat.bonusHP);
+        baseMaxMP = stat.mp + (isBonusNull ? 0  : bonusStat.bonusMP);
+        baseSpeedMin = stat.speed_min;
+        baseSpeedMax = stat.speed_max;
+
+        currentHP = baseMaxHP;
+        currentMP = baseMaxMP;
+
         mainActionCount = BaseMainAction + (isBonusNull ? 0 : bonusStat.bonusMainAction);
         subActionCount = BaseSubAction + (isBonusNull ? 0 : bonusStat.bonusSubAction);   
         leftMainAction = mainActionCount;
@@ -170,8 +194,9 @@ public class BattleUnit
         int realDMG = Mathf.Max(dmg-targetDEF,0);
         target.currentHP = Mathf.Max(target.currentHP - realDMG,0);
 
-        Debug.Log($"{name}이 {target.name}를 향해 공격. 데미지 : {dmg}, 실제 데미지 : {realDMG}");
-        Debug.Log($"{target.name}의 남은 HP {target.currentHP}");
+        //Debug.Log($"{name}이 {target.name}를 향해 공격. 데미지 : {dmg}, 실제 데미지 : {realDMG}");
+        //Debug.Log($"{target.name}의 남은 HP {target.currentHP}");
+        //Debug.Log($"{attack}");
     }
 
     public void ConsumeSkillCost(SkillData skill)
@@ -187,40 +212,34 @@ public class BattleUnit
         return Mathf.RoundToInt(dmg);
     }
 
-    public void TakeDamage(BattleUnit target, int dmg)
+    public void TakeDamage(BattleUnit target,SkillData skill, int dmg)
     {
-        int realDMG = dmg-target.defense;
-        target.currentHP = Mathf.Max(target.currentHP - realDMG, 0);
-
-        Debug.Log($"{name}이 {target.name}를 향해 공격. 데미지 : {dmg}, 실제 데미지 : {realDMG}");
-        Debug.Log($"{target.name}의 남은 HP {target.currentHP}");
-    }
-
-    public void UseSingleSkill(BattleUnit target,SkillData skill, int dmg)
-    {
-        // 선택한 스킬 사용
-        Debug.Log($"skilltype : {skill.skillType}");
         switch (skill.skillType)
         {
             case SkillType.Damage:
-                TakeDamage(target,dmg);
+                int realDMG = Mathf.Max(dmg-target.defense,0);
+                target.currentHP = Mathf.Max(target.currentHP - realDMG, 0);
+                Debug.Log($"{name}이 {target.name}를 향해 공격. 데미지 : {dmg}, 실제 데미지 : {realDMG}");
+                Debug.Log($"{target.name}의 남은 HP {target.currentHP}");
                 break;
 
             case SkillType.Buff:
                 break;
-            
+
             case SkillType.Debuff:
                 break;
-            
+
             case SkillType.Heal:
-                target.currentHP = Mathf.Min(target.currentHP + dmg, target.baseStat.hp);
-
-                //StartCoolDown(skill);
-
-                Debug.Log($"{name}이 {target.name}을 향해 힐. 힐량 : {dmg}");
-                Debug.Log($"{target.name}의 hp : {target.currentHP}");
+                target.currentHP = Mathf.Min(target.currentHP + dmg, target.baseMaxHP);
+                Debug.Log($"{name}이 {target.name}을 힐 : {dmg}");
                 break;
-        }   
+        }
+
+        foreach(var id in skill.effectID)
+        {
+            EffectData effectData = DataManager.instance.effectDatas[id];
+            target.ApplyEffect(effectData);
+        }        
     }
 
     private void StartCoolDown(SkillData skill)
@@ -250,5 +269,121 @@ public class BattleUnit
         }
         
         return -1;
+    }
+
+    public void ApplyEffect(EffectData effect)
+    {
+        var id = activeEffects.FirstOrDefault(e=>e.data.effectID == effect.effectID);        
+
+        if(id == null)
+        {
+            activeEffects.Add(new ActiveEffect
+            {
+                data = effect,
+                damage = effect.damage,
+                duration = effect.duration
+            });
+            return;
+        }
+
+        switch (id.data.stack)
+        {
+            case StackType.None: 
+                break;
+
+            case StackType.ResetDuration:
+                id.duration = effect.duration;
+                break;
+                
+            case StackType.AddDamage:
+                if(id.damage < effect.maxDamage)
+                {
+                    id.damage = Mathf.Min(id.damage + Mathf.RoundToInt(effect.damage / 2),effect.maxDamage);
+                    id.duration++;
+                }
+                break;
+        }
+    }
+
+    public void CheckEffect(BattleState timing)
+    {
+        Debug.Log($"timing : {timing}");
+        for(int i = activeEffects.Count-1 ; i >=0 ; i--)
+        {
+            var e = activeEffects[i];
+
+            if(e.data.timing != timing) continue;
+
+            e.duration--;
+
+            if(e.duration < 0)
+            {
+                activeEffects.RemoveAt(i);
+                continue;
+            }
+            
+            TakeEffect(e);
+        }
+        CalcBuff();
+    }
+
+    public void TakeEffect(ActiveEffect e)
+    {
+        switch (e.data.type)
+        {
+            case EffectType.Bleed:
+            case EffectType.Poison:
+            case EffectType.Burn:
+                int baseDmg = e.damage;
+                currentHP = Mathf.Max(currentHP - baseDmg,0);
+                Debug.Log($"{name}가 {e.data.type} 데미지 입음 : {e.damage}, 남은 턴수 {e.duration}");
+                break;
+            
+            case EffectType.StatBuff:
+            case EffectType.StatDebuff:
+                Debug.Log($"{name}가 {e.data.type} 얻음. 남은 턴수 {e.duration}");
+                break;
+            
+            case EffectType.Freeze:
+            case EffectType.Stun:
+                break;
+        }
+    }
+
+    public void CalcBuff()
+    {
+        attackBonus = 0;
+        defenseBonus = 0;
+        bonusSpeed_max = 0;
+
+        foreach(var e in activeEffects)
+        {
+            if(e.data.type != EffectType.StatBuff && e.data.type != EffectType.StatDebuff)
+                continue;
+            
+            int value = e.damage;
+            if(e.data.type == EffectType.StatDebuff) 
+            {
+                value = -value;
+            }
+
+            switch (e.data.status)
+            {
+                case StatusType.None:
+                    break;
+
+                case StatusType.Attack:
+                    attackBonus += value;
+                    break;
+
+                case StatusType.Defense:
+                    defenseBonus += value;
+                    break;
+
+                case StatusType.Speed:
+                    bonusSpeed_max += value;
+                    break;
+            }
+        }
     }
 }
