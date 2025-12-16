@@ -42,6 +42,5 @@ public class DataManager : MonoBehaviour
 
         // waveData 불러오기
         csvReader.ReadWaveCSV(waveDatas);
-
     }
 }

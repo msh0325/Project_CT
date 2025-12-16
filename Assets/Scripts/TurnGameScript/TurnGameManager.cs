@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class TurnGameManager : MonoBehaviour
 {
@@ -86,6 +87,10 @@ public class TurnGameManager : MonoBehaviour
     {
         // battleState를 외부 플래그용으로 사용하고(ex 플레이어 입력은 turnrun에서만 받게 하기, UI 특정 상황에서만 띄우기 등)
         // 전체적인 전투 흐름은 coroutine 이용하기?
+        if(state == BattleState.Idle && Input.GetKeyDown(KeyCode.F))
+        {
+            SceneManager.LoadScene("StoryScene");
+        }
     }
 
     // 전체적인 전투 흐름 코루틴
@@ -472,23 +477,24 @@ public class TurnGameManager : MonoBehaviour
     private List<BattleUnit> SkillRangeTargets(BattleUnit user, SkillData skill)
     {
         List<BattleUnit> source = null;
+        bool isAllyteam = user.team == TeamType.Ally;
 
         switch (skill.targetType)
         {
             case TargetType.EnemySingle:
-                source = user.team == TeamType.Ally? enemies:allies;
+                source = isAllyteam? enemies:allies;
                 break;
 
             case TargetType.EnemyAll:
-                source = user.team == TeamType.Ally? enemies:allies;
+                source = isAllyteam? enemies:allies;
                 break;
 
             case TargetType.AllySingle:
-                source = user.team == TeamType.Ally? allies:enemies;
+                source = isAllyteam? allies:enemies;
                 break;
 
             case TargetType.AllyAll:
-                source = user.team == TeamType.Ally? allies:enemies;
+                source = isAllyteam? allies:enemies;
                 break;
 
             case TargetType.Self:

@@ -4,38 +4,37 @@ using UnityEngine.UI;
 
 public class CharacterButton : MonoBehaviour, IBeginDragHandler,IDragHandler,IEndDragHandler
 {
-    public Canvas canvas;
     private RectTransform rect;
-    //private Vector3 originalPos;
-    private int originalIndex;
+    public PlayerCharacterStat stat;
     private Transform originalParent;
+    private Vector2 anchoredPos;
     public PartySlot nowSlot;
-    public bool onPosition = false;
+    public bool isSelected = false;
+    public string characterName;
 
-    void Start()
+    public void Init()
     {
         rect = GetComponent<RectTransform>();
-        //originalPos = rect.position;
-        originalIndex = rect.GetSiblingIndex();
         originalParent = rect.parent;
-    }
-
-    void Update()
-    {
-        
+        anchoredPos = rect.anchoredPosition;
+        if(DataManager.instance.characterStats.TryGetValue(stat.characterID,out var character))
+        {
+            characterName = character.name;
+        }
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        GetComponent<Image>().raycastTarget = false;
-
-        /*if(nowSlot != null)
+        if (!isSelected)
+        {
+            anchoredPos = rect.anchoredPosition;
+        }
+        else
         {
             nowSlot.ClearSlot();
             nowSlot = null;
-        }*/
-
-        if(canvas !=null) rect.SetParent(canvas.transform, true);
+        }
+        GetComponent<Image>().raycastTarget = false;
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -46,38 +45,18 @@ public class CharacterButton : MonoBehaviour, IBeginDragHandler,IDragHandler,IEn
     public void OnEndDrag(PointerEventData eventData)
     {
         GetComponent<Image>().raycastTarget = true;
-        
-        if(nowSlot != null)
+        rect.SetParent(originalParent,false);
+        rect.anchoredPosition = anchoredPos;
+    }
+
+    public void SelectCharacter(bool on)
+    {
+        isSelected = on;
+        Color color = Color.white;
+        if (on)
         {
-            RectTransform slotRect = nowSlot.GetComponent<RectTransform>();
-
-            bool stillOnSlot = RectTransformUtility.RectangleContainsScreenPoint(
-                slotRect,
-                eventData.position,
-                eventData.pressEventCamera
-            );
-
-            if (stillOnSlot)
-            {
-                rect.SetParent(nowSlot.transform);
-                rect.position = nowSlot.transform.position;
-                return;
-            }
-            
-            nowSlot.ClearSlot();
-            nowSlot = null;
-
-            rect.SetParent(originalParent);
-            rect.SetSiblingIndex(originalIndex);
-            //rect.position = originalPos;
-            return;
+            color = Color.gray;
         }
-
-        if(nowSlot == null)
-        {
-            rect.SetParent(originalParent);
-            //rect.position = originalPos;
-            rect.SetSiblingIndex(originalIndex);
-        }
+        GetComponent<Image>().color = color;
     }
 }

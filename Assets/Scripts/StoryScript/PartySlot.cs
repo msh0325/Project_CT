@@ -1,19 +1,14 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class PartySlot : MonoBehaviour, IDropHandler
 {   
     public CharacterButton character;
+    public GameObject currentBtn;
+    public GameObject slotBtn;
     public RowType row;
-    void Start()
-    {
-        
-    }
-
-    void Update()
-    {
-        
-    }
 
     private bool IsEmpty()
     {
@@ -23,21 +18,56 @@ public class PartySlot : MonoBehaviour, IDropHandler
 
     public void ClearSlot()
     {
-        character = null;
+        if(character != null)
+        {
+            character.SelectCharacter(false);
+            character.nowSlot = null;
+            character = null;
+        }
+
+        if(currentBtn != null)
+        {
+            Destroy(currentBtn);
+            currentBtn = null;
+        }
     }
 
     public void OnDrop(PointerEventData eventData)
     {
-        if (IsEmpty())
-        {
-            var btn = eventData.pointerDrag?.GetComponent<CharacterButton>();
-            if(btn == null) return;
-            
-            character = btn;
-            btn.nowSlot = this;
+        var charBtn = eventData.pointerDrag?.GetComponent<CharacterButton>();
+        if(charBtn == null) return;
 
-            btn.transform.SetParent(transform);
-            btn.GetComponent<RectTransform>().position = transform.position;
+        if (!IsEmpty())
+        {
+            character.SelectCharacter(false);
+
+            if(currentBtn != null)
+            {
+                Destroy(currentBtn);
+            }
         }
+        
+        SetUIFromRosterBtn(charBtn);
+    }
+
+    public void SetUIFromRosterBtn(CharacterButton charBtn)
+    {
+        if(charBtn == null) return;
+
+        if(character != null) character.SelectCharacter(false);
+        if(currentBtn != null) currentBtn = null;
+        
+        currentBtn = Instantiate(slotBtn,transform);
+        currentBtn.transform.localPosition = Vector3.zero;
+
+        var text = currentBtn.GetComponentInChildren<TMP_Text>();
+        if(text != null) text.text = charBtn.characterName;
+
+        var btn = currentBtn.GetComponent<Button>();
+        if(btn != null) btn.onClick.AddListener(()=>ClearSlot());
+
+        character = charBtn;
+        character.nowSlot = this;
+        character.SelectCharacter(true);
     }
 }

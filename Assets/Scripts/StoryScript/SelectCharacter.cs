@@ -9,7 +9,10 @@ public class SelectCharacter : MonoBehaviour
 {
     private PlayerData pcData;
     private DataManager dataManager;
+    public Dictionary<string,CharacterButton> rosterBtnMap = new();
     [SerializeField] private GameObject characterObj;
+    [SerializeField] private Button startBtn;
+    public PartySlot[] slots;
     void Start()
     {
         pcData = PlayerData.instance;
@@ -20,7 +23,7 @@ public class SelectCharacter : MonoBehaviour
         // 나중에 제대로 ui 만들 때 드래그&드롭으로 파티 구성. 그때 rowtype 고를 수 있게 바꾸기
         foreach(var c in pcData.roster)
         {
-            GameObject obj = Instantiate(characterObj,transform);
+            CharacterButton obj = Instantiate(characterObj,transform).GetComponent<CharacterButton>();
 
             string id = c.characterID;
             if(!dataManager.characterStats.TryGetValue(id,out var stat))
@@ -31,46 +34,74 @@ public class SelectCharacter : MonoBehaviour
             var statLocal = stat;
 
             obj.GetComponentInChildren<TMP_Text>().text = statLocal.name;
+            obj.stat = c;
+            obj.Init();
 
-            /*obj.GetComponent<Button>().onClick.AddListener(() =>
+            rosterBtnMap[id] = obj;
+        }
+
+        LoadPartyFromSlot();
+        
+        startBtn.onClick.AddListener(() =>
+        {
+            SavePartyFromSlot();
+
+            int selectedCount = pcData.selectedParty.Count;
+            if(selectedCount > 0)
             {
-                if(pcData.selectedPartyMap.TryGetValue(cLocal.characterID,out var party))
-                {
-                    Debug.Log($"unselect {statLocal.name}");
-                    pcData.selectedParty.Remove(party);
-                    pcData.selectedPartyMap.Remove(party.characterID);
-                    selectedCount--;
-                    return;
-                }
-                if(selectedCount >= 3)
-                {
-                    Debug.Log($"최대 편성 수 3명 초과");
-                    return;
-                }
+                Debug.Log("start game");
+                SceneManager.LoadScene("BattleScene");
+            }
+            else if(selectedCount <= 0)
+            {
+                Debug.Log("캐릭터 선택 필요");
+            }
+        });
+    }
 
-                Debug.Log($"select {statLocal.name}");
-                PartyMemberSetting mem = new PartyMemberSetting
-                {
-                    characterID = cLocal.characterID,
-                    row = RowSetting(),
-                    battleEquippedSkillID = new List<string>(cLocal.defaultEquippedSkillID)
-                };
-                pcData.selectedParty.Add(mem);
-                pcData.selectedPartyMap.Add(mem.characterID,mem);
-                selectedCount++;
-            });*/
+    private void SavePartyFromSlot()
+    {
+        pcData.selectedParty.Clear();
+        pcData.selectedPartyMap.Clear();
+
+        foreach(var s in slots)
+        {
+            if(s.character == null) continue;
+            string id = s.character.stat.characterID;
+
+            if(pcData.selectedPartyMap.ContainsKey(id)) continue;
+
+            PartyMemberSetting mem = new PartyMemberSetting
+            {
+                characterID = id,
+                row = s.row,
+                battleEquippedSkillID = new List<string>(s.character.stat.defaultEquippedSkillID)
+            };
+
+            pcData.selectedParty.Add(mem);
+            pcData.selectedPartyMap.Add(id,mem);
         }
     }
-    void Update()
+
+    private void LoadPartyFromSlot()
     {
-        if (Input.GetKeyDown(KeyCode.F))
+        foreach(var s in slots)
         {
-            if(pcData.selectedParty.Count == 0)
+            s.ClearSlot();
+        }
+
+        foreach(var mem in pcData.selectedParty)
+        {
+            var slot = slots.FirstOrDefault(s=>s.row == mem.row);
+            if(slot == null) continue;
+
+            if(!rosterBtnMap.TryGetValue(mem.characterID,out var charBtn))
             {
-                Debug.Log("플레이어 캐릭터 선택 필요");
-                return;
+                Debug.LogWarning($"characterstat에 {mem.characterID}가 없음");
+                continue;
             }
-            SceneManager.LoadScene("BattleScene");
+
+            slot.SetUIFromRosterBtn(charBtn);
         }
     }
 }

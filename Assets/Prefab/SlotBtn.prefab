@@ -11,10 +11,9 @@ GameObject:
   - component: {fileID: 4890077704743284670}
   - component: {fileID: 6989758794022282858}
   - component: {fileID: 6085745534494230142}
-  - component: {fileID: 7156608476169226488}
   - component: {fileID: 3753515388392437521}
   m_Layer: 5
-  m_Name: characterselectBtn
+  m_Name: SlotBtn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -78,31 +77,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &7156608476169226488
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5302273904799212664}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2b57984ecd6fa7d41bc6b315b8c9c803, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  canvas: {fileID: 0}
-  stat:
-    characterID: 
-    bonusHP: 0
-    bonusMP: 0
-    bonusAttack: 0
-    bonusDefense: 0
-    bonusMainAction: 0
-    bonusSubAction: 0
-    learnedSkillID: []
-    defaultEquippedSkillID: []
-    isSelectable: 1
-  nowSlot: {fileID: 0}
 --- !u!114 &3753515388392437521
 MonoBehaviour:
   m_ObjectHideFlags: 0

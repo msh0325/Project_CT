@@ -550,6 +550,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   character: {fileID: 0}
+  currentBtn: {fileID: 0}
+  slotBtn: {fileID: 5302273904799212664, guid: ca8db72cea5b9b3429be9418a354da82, type: 3}
   row: 1
 --- !u!114 &743253669
 MonoBehaviour:
@@ -641,6 +643,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterObj: {fileID: 5302273904799212664, guid: 6419491bc66b7ac4eac8c93c4d5cc7c7, type: 3}
+  startBtn: {fileID: 26630125}
+  slots:
+  - {fileID: 2004313619}
+  - {fileID: 743253668}
+  - {fileID: 1423014274}
 --- !u!114 &750154859
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1035,6 +1042,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   character: {fileID: 0}
+  currentBtn: {fileID: 0}
+  slotBtn: {fileID: 5302273904799212664, guid: ca8db72cea5b9b3429be9418a354da82, type: 3}
   row: 0
 --- !u!114 &1423014275
 MonoBehaviour:
@@ -1251,6 +1260,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   character: {fileID: 0}
+  currentBtn: {fileID: 0}
+  slotBtn: {fileID: 5302273904799212664, guid: ca8db72cea5b9b3429be9418a354da82, type: 3}
   row: 2
 --- !u!114 &2004313620
 MonoBehaviour:
