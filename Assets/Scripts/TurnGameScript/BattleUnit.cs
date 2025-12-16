@@ -183,19 +183,15 @@ public class BattleUnit
     {
         leftSubAction--;
     }
-
-    public void TestAttack(BattleUnit target, System.Random rnd)
+    
+    public void Attack(BattleUnit target, System.Random rnd)
     {
         int targetDEF = target.defense;
-        // (공격력 * 배율) + 랜덤 보정 데미지
-        int dmg = Mathf.RoundToInt((attack * 1.5f) + rnd.Next(3,6));
+        int dmg = attack + rnd.Next(0,3);
 
         int realDMG = Mathf.Max(dmg-targetDEF,0);
-        target.currentHP = Mathf.Max(target.currentHP - realDMG,0);
-
-        //Debug.Log($"{name}이 {target.name}를 향해 공격. 데미지 : {dmg}, 실제 데미지 : {realDMG}");
-        //Debug.Log($"{target.name}의 남은 HP {target.currentHP}");
-        //Debug.Log($"{attack}");
+        target.currentHP = Mathf.Max(target.currentHP-realDMG, 0);
+        currentMP = Mathf.Min(currentMP + 10, baseMaxMP);
     }
 
     public void ConsumeSkillCost(SkillData skill)
@@ -307,6 +303,7 @@ public class BattleUnit
     public void CheckEffect(BattleState timing)
     {
         Debug.Log($"timing : {timing}");
+        
         for(int i = activeEffects.Count-1 ; i >=0 ; i--)
         {
             var e = activeEffects[i];

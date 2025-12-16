@@ -31,6 +31,7 @@ public class TurnGameManager : MonoBehaviour
     private List<BattleUnit> enemies = new();
     private List<BattleUnit> turnOrder = new();
     private List<WaveData> waves = new();
+    private SupportUnit support = new();
 
     private DataManager dataManager;
     private PlayerData pcDataManager;
@@ -47,7 +48,8 @@ public class TurnGameManager : MonoBehaviour
         Attack,
         Skill,
         Defend,
-        Item
+        Item,
+        Support
     }
 
     void Awake()
@@ -119,6 +121,7 @@ public class TurnGameManager : MonoBehaviour
             }
 
             RollUnitSpeed();
+            support.TickCoolDown();
             
             for(int i = 0; i < turnOrder.Count; i++)
             {
@@ -136,7 +139,7 @@ public class TurnGameManager : MonoBehaviour
                 // 턴 진행중 죽었으면 다음 순서
                 if(nowUnit.isDead) continue;                
                 // 4. 캐릭터 행동 대기. 플레이어의 주/부 행동 입력 or 적의 AI 입력 (state = RunTurn)
-                Debug.Log($"now {nowUnit.name}'s turn. hp : {nowUnit.currentHP} / mp : {nowUnit.currentMP}");
+                Debug.Log($"now {nowUnit.name}'s turn.");
                 nowUnit.CheckEffect(state);
                 state = BattleState.RunTurn;
                 
@@ -180,7 +183,7 @@ public class TurnGameManager : MonoBehaviour
                     target = allies.FirstOrDefault(u =>!u.isDead);
                     if(target != null)
                     {
-                        nowUnit.TestAttack(target,rnd);                    
+                        nowUnit.Attack(target,rnd);                    
                     }
                     if (CheckBattleOver())
                     {
@@ -195,8 +198,7 @@ public class TurnGameManager : MonoBehaviour
                         break;
                     }
                 }
-                uiManager.HidePlayerUI(); 
-                if(breakRound) break;           
+                uiManager.HidePlayerUI();    
 
                 // 5. 캐릭터 행동 종료. turnOrder에 남은 캐릭터 있으면 3번부터 시작 (state = TurnEnd)
                 state = BattleState.TurnEnd;
@@ -213,7 +215,10 @@ public class TurnGameManager : MonoBehaviour
                 {
                     ui.Refresh();
                 }
+                
                 yield return new WaitUntil(()=>Input.GetKeyDown(KeyCode.Space));
+                
+                if(breakRound) break;
             }
             // 6. 모든 캐릭터가 행동 종료했으면 라운드 종료 (state = RoundEnd)
             state = BattleState.RoundEnd;
@@ -223,7 +228,7 @@ public class TurnGameManager : MonoBehaviour
             }
             // 전투 종료 체크하기 & 웨이브 체크하기. 
             // 나중에 라운드 종료 상태이상 적용하면 그거로 죽고 끝날 수 있으니 나중에 다시 주석 풀기
-            //CheckBattleOver();
+            CheckBattleOver();
         }
 
         // 전투 종료.
@@ -270,6 +275,42 @@ public class TurnGameManager : MonoBehaviour
         }
 
         SpawnEnemyUnit(nowWaveIndex);
+
+        // 서포트 캐릭터 불러오기
+        var sup = pcDataManager.selectedSupport;
+        if(sup == null || string.IsNullOrEmpty(sup.supportID))
+        {
+            support = null;
+            return;
+        }
+
+        if(!dataManager.supportData.TryGetValue(sup.supportID,out var supportData))
+        {
+            Debug.LogWarning($"supportdata에 supportid {sup.supportID}가 없음");
+            support = null;
+            return;
+        }
+
+        var skillid = sup.supportSkillID;
+
+        if (string.IsNullOrEmpty(skillid))
+        {
+            Debug.LogWarning($"supportdata에 skillid가 없음");
+            support = null;
+            return;
+        }
+
+        if(!dataManager.skillDatas.TryGetValue(skillid,out var skill))
+        {
+            Debug.LogWarning($"skilldatas에 skillid {skillid} 가 없음");
+            support = null;
+            return;
+        }
+        support = new SupportUnit
+        {
+            data = supportData,
+            supportSkill = skill
+        };
     }
 
     private void SetUpWaveBattleUnits(int waveIndex)
@@ -406,12 +447,13 @@ public class TurnGameManager : MonoBehaviour
     // 플레이어의 행동 실행 함수
     private bool ExcutePlayerCommand(BattleUnit unit, BattleUnit target, BattleCommandType cmd)
     {
+        // 주 행동 모두 소모하면 즉시 턴 종료.
         // 턴을 안 까먹는 행동(부 행동)은 false, 턴을 까먹는 행동(주 행동)은 true 리턴
         switch(cmd)
         {
             case BattleCommandType.Attack:
                 if(!unit.CanUseMainAction()) return true;
-                if(target != null) unit.TestAttack(target,rnd);
+                if(target != null) unit.Attack(target,rnd);
                 unit.UseMainAction();
                 return !unit.CanUseMainAction();
             
@@ -460,6 +502,41 @@ public class TurnGameManager : MonoBehaviour
                 Debug.Log("use item");
                 unit.UseSubAction();
                 return false;
+
+            case BattleCommandType.Support:
+                if(!unit.CanUseSubAction()) return false;
+                if(support == null) return false;
+                if(!support.CanUseSupport()) return false;
+                Debug.Log("use supportSkill");
+                int supDmg = support.CalcDamage(rnd);
+                switch (selectSkill.targetType)
+                {
+                    case TargetType.AllySingle:
+                    case TargetType.EnemySingle:
+                    case TargetType.Self:
+                        unit.TakeDamage(target,selectSkill,supDmg);
+                        break;
+                    
+                    case TargetType.AllyAll:
+                        var targets = allies.Where(u=>!u.isDead);
+                        foreach(var t in targets)
+                        {
+                            unit.TakeDamage(t,selectSkill,supDmg);
+                        }
+                        break;
+                    
+                    case TargetType.EnemyAll:
+                        var tar = enemies.Where(u=>!u.isDead);
+                        foreach(var t in tar)
+                        {
+                            unit.TakeDamage(t,selectSkill,supDmg);
+                        }
+                        break;
+                }
+
+                support.StartCooldown();
+                unit.UseSubAction();
+                return false;
             
             default:
                 return false;
@@ -506,6 +583,11 @@ public class TurnGameManager : MonoBehaviour
         return candidates;
     }
 
+    public List<BattleUnit> DefenseRangeTarget(BattleUnit user)
+    {
+        return new List<BattleUnit>{user};
+    }
+
     public void OnPlayerSelectCommand(BattleCommandType cmd, SkillData skill = null)
     {
         if(!isPlayerChecked) return;
@@ -530,6 +612,32 @@ public class TurnGameManager : MonoBehaviour
                 command = cmd;
                 selectedTarget = target;
                 selectSkill = skill;
+                isPlayerChecked = false;
+            });
+            return;
+        }
+
+        if(cmd == BattleCommandType.Defend)
+        {
+            var candidates = DefenseRangeTarget(currentUnit);
+            uiManager.EnterTargetSelectMode(candidates, (target) =>
+            {
+                command = cmd;
+                selectedTarget = target;
+                selectSkill = null;
+                isPlayerChecked = false;
+            });
+            return;
+        }
+
+        if(cmd == BattleCommandType.Support)
+        {
+            var candidates = SkillRangeTargets(currentUnit,support.supportSkill);
+            uiManager.EnterTargetSelectMode(candidates, (target) =>
+            {
+                command = cmd;
+                selectedTarget = target;
+                selectSkill = support.supportSkill;
                 isPlayerChecked = false;
             });
             return;

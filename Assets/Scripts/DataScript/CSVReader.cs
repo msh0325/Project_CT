@@ -12,6 +12,7 @@ public class CSVReader : MonoBehaviour
     public TextAsset effectCSV;
     public TextAsset stageCSV;
     public TextAsset waveCSV;
+    public TextAsset supportCSV;
     
     public void ReadCharacterCSV(Dictionary<string, CharacterStat> saveFile)
     {
@@ -362,6 +363,55 @@ public class CSVReader : MonoBehaviour
             }
 
             list.Add(data);
+        }
+    }
+
+    public void ReadSupportCSV(Dictionary <string,SupportCharacterData> saveFile)
+    {
+        if(supportCSV == null)
+        {
+            Debug.LogError("supportCSV가 비어있습니다");
+            return;
+        }
+
+        string[] lines = supportCSV.text.Split('\n');
+        if(lines.Length <= 1)
+        {
+            Debug.LogWarning("csv 파일에 데이터가 없음");
+            return;
+        }
+
+        for(int i = 1; i < lines.Length; i++)
+        {
+            string line = lines[i].Trim();
+
+            if(string.IsNullOrEmpty(line)) continue;
+
+            string[] cols = line.Split(',');
+
+            if(cols.Length < 4)
+            {
+                Debug.LogWarning($"support 컬럼 개수 부족(line : {line})");
+                continue;
+            }
+
+            for(int j = 0; j < cols.Length; j++)
+            {
+                cols[j] = cols[j].Trim().Trim('"');
+            }
+
+            SupportCharacterData data = new SupportCharacterData
+            {
+                supportID = cols[0],
+                name = cols[1],
+                supportSkillID = cols[2],
+                attack = int.Parse(cols[3])
+            };
+
+            if(!saveFile.ContainsKey(data.supportID))
+            {
+                saveFile.Add(data.supportID,data);
+            }
         }
     }
 }

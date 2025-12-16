@@ -5,6 +5,7 @@ public class BattleUI : MonoBehaviour
 {
     public TMP_Text nameText;
     public TMP_Text hpText;
+    public TMP_Text mpText;
     public BattleUnit runtimeUnit;
     [SerializeField] private SpriteRenderer highlightBox;
     private Color targetColor = Color.yellow;
@@ -25,6 +26,8 @@ public class BattleUI : MonoBehaviour
         if(nameText != null) nameText.text = runtimeUnit.name;
 
         if(hpText != null) hpText.text = $"HP : {runtimeUnit.currentHP}";
+
+        if(mpText != null) mpText.text = $"MP : {runtimeUnit.currentMP}";
     }
 
     public void SetCandidate(bool on)

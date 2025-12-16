@@ -49,3 +49,39 @@ public class PartyMemberSetting // 편성된 캐릭터 위치 / 선택 스킬
     public RowType row;
     public List<string> battleEquippedSkillID = new();
 }
+
+[Serializable]
+public class SupportCharacterData
+{
+    public string supportID;
+    public string name;
+    public string supportSkillID;
+    public int attack;
+}
+
+public class SupportUnit
+{
+    public SupportCharacterData data;
+    public SkillData supportSkill;
+    public int cooldown;
+    
+
+    public void StartCooldown()
+    {
+        cooldown = supportSkill.coolTime;
+    }
+    public void TickCoolDown()
+    {
+        cooldown = Mathf.Max(cooldown-1,0);
+    }
+    
+    public int CalcDamage(System.Random rnd)
+    {
+        return Mathf.RoundToInt(data.attack * supportSkill.multiplier + rnd.Next(supportSkill.random_min,supportSkill.random_max));
+    }
+    public bool CanUseSupport()
+    {
+        if(cooldown == 0) return true;
+        else return false;
+    }
+}

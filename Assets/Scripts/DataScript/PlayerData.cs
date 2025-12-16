@@ -6,11 +6,16 @@ public class PlayerData : MonoBehaviour
     public static PlayerData instance;
 
     // 로스터 : 플레이어가 현재 가지고 있는 캐릭터 정보
+    public List<string> ownedCharacters = new();
     public List<PlayerCharacterStat> roster = new();
     public Dictionary<string, PlayerCharacterStat> rosterMap = new();
     // 편성한 파티 : 플레이어가 선택한 전투 유닛 3명 + 서포트 유닛 1명 (이보다 적을 수 있음)
     public List<PartyMemberSetting> selectedParty = new();
     public Dictionary<string, PartyMemberSetting> selectedPartyMap = new();
+    // 서포트 로스터 : 플레이어가 현재 가지고 있는 서포트 캐릭터 정보
+    public List<string> ownedSupports = new();
+    public List<SupportCharacterData> supportRoster = new();
+    public SupportCharacterData selectedSupport = new();
     public string nowSelectStageID; // 임시 변수
     // 진행 상황 : 클리어현황, 특정 기능 해금
     // 인벤토리 : 메인/서브퀘 깨면서 얻은 아이템들. 퀘스트 아이템도 포함
@@ -28,6 +33,53 @@ public class PlayerData : MonoBehaviour
             Destroy(gameObject);
         }
         SetDataMap();
+    }
+
+    void Start()
+    {
+        SetRoster(DataManager.instance);
+        SetSupportRoster(DataManager.instance);
+    }
+
+    private void SetRoster(DataManager dm)
+    {
+        roster.Clear();
+        rosterMap.Clear();
+
+        foreach(var id in ownedCharacters)
+        {
+            if (!dm.characterStats.ContainsKey(id))
+            {
+                Debug.LogWarning($"{id}가 characterstat에 없음");
+                continue;
+            }
+
+            var member = new PlayerCharacterStat
+            {
+                characterID = id,
+                isSelectable = true,
+            };
+
+            roster.Add(member);
+            rosterMap[id] = member;
+        }
+    }
+
+    private void SetSupportRoster(DataManager dm)
+    {
+        supportRoster.Clear();
+
+        foreach(var id in ownedSupports)
+        {
+            if (!dm.supportData.TryGetValue(id,out var support))
+            {
+                Debug.LogWarning($"{id}가 supportdata에 없음");
+                continue;
+            }
+
+            supportRoster.Add(support);
+        }
+
     }
 
     private void SetDataMap()

@@ -13,6 +13,7 @@ public class SelectCharacter : MonoBehaviour
     [SerializeField] private GameObject characterObj;
     [SerializeField] private Button startBtn;
     public PartySlot[] slots;
+    public TMP_Dropdown supports;
     void Start()
     {
         pcData = PlayerData.instance;
@@ -45,6 +46,7 @@ public class SelectCharacter : MonoBehaviour
         startBtn.onClick.AddListener(() =>
         {
             SavePartyFromSlot();
+            SaveSupportCharacter();
 
             int selectedCount = pcData.selectedParty.Count;
             if(selectedCount > 0)
@@ -57,6 +59,8 @@ public class SelectCharacter : MonoBehaviour
                 Debug.Log("캐릭터 선택 필요");
             }
         });
+
+        supports.AddOptions(pcData.ownedSupports);
     }
 
     private void SavePartyFromSlot()
@@ -103,5 +107,19 @@ public class SelectCharacter : MonoBehaviour
 
             slot.SetUIFromRosterBtn(charBtn);
         }
+    }
+
+    private void SaveSupportCharacter()
+    {
+        int index = supports.value;
+        string id = supports.options[index].text;
+
+        if(!dataManager.supportData.TryGetValue(id,out var sup))
+        {
+            Debug.LogWarning($"supportdata에서 {id} 없음");
+            pcData.selectedSupport = null;
+            return;
+        }
+        pcData.selectedSupport = sup;
     }
 }

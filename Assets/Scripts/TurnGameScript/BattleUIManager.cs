@@ -13,6 +13,7 @@ public class BattleUIManager : MonoBehaviour
     public Button skillBtn;
     public Button defendBtn;
     public Button itemBtn;
+    public Button supportBtn;
 
     private List<BattleUI> battleUIs = new();
     private bool isTargetSelectMode = false;
@@ -48,6 +49,11 @@ public class BattleUIManager : MonoBehaviour
         itemBtn.onClick.AddListener(() =>
         {
             gm.OnPlayerSelectCommand(TurnGameManager.BattleCommandType.Item);
+        });
+
+        supportBtn.onClick.AddListener(() =>
+        {
+            gm.OnPlayerSelectCommand(TurnGameManager.BattleCommandType.Support);
         });
     }
 

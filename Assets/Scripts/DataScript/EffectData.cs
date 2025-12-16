@@ -33,7 +33,7 @@ public enum EffectType
     StatBuff,
     StatDebuff,
     Bleed, // 턴 시작시 데미지
-    Poison, // 턴 종료시 데미지
+    Poison, // 턴 종료시 데미지, 마나 감소(?)
     Freeze, // 다음 턴 속도 감소
     Burn, // 턴 시작시 데미지, 방어력 감소
     Stun // 턴을 제일 마지막으로 미룸.

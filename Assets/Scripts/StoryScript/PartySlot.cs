@@ -64,7 +64,7 @@ public class PartySlot : MonoBehaviour, IDropHandler
         if(text != null) text.text = charBtn.characterName;
 
         var btn = currentBtn.GetComponent<Button>();
-        if(btn != null) btn.onClick.AddListener(()=>ClearSlot());
+        if(btn != null) btn.onClick.AddListener(() => ClearSlot());
 
         character = charBtn;
         character.nowSlot = this;
