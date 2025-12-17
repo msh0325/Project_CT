@@ -51,17 +51,18 @@ public class PartyMemberSetting // 편성된 캐릭터 위치 / 선택 스킬
 }
 
 [Serializable]
-public class SupportCharacterData
+public class SupportData
 {
     public string supportID;
     public string name;
     public string supportSkillID;
     public int attack;
+    public CastType cast;
 }
 
 public class SupportUnit
 {
-    public SupportCharacterData data;
+    public SupportData data;
     public SkillData supportSkill;
     public int cooldown;
     
@@ -79,9 +80,16 @@ public class SupportUnit
     {
         return Mathf.RoundToInt(data.attack * supportSkill.multiplier + rnd.Next(supportSkill.random_min,supportSkill.random_max));
     }
+
     public bool CanUseSupport()
     {
-        if(cooldown == 0) return true;
+        if(cooldown <= 0) return true;
         else return false;
     }
+}
+
+public enum CastType
+{
+    Active,
+    Passive
 }

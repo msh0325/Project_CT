@@ -13,7 +13,7 @@ public class DataManager : MonoBehaviour
     public Dictionary<string, EffectData> effectDatas = new();
     public Dictionary<string, StageData> stageDatas = new();
     public Dictionary<string, List<WaveData>> waveDatas = new();
-    public Dictionary<string, SupportCharacterData> supportData = new();
+    public Dictionary<string, SupportData> supportData = new();
 
     void Awake()
     {

@@ -24,8 +24,8 @@ public class BattleUnit
 
     public int currentHP;
     public int currentMP;
-    public int attack => baseAttack + attackBonus;
-    public int defense => baseDefense + defenseBonus;
+    public int attack => Mathf.RoundToInt((baseAttack + attackBonus) * attack_mul);
+    public int defense => Mathf.RoundToInt((baseDefense + defenseBonus) * defense_mul);
     public int maxHP => baseMaxHP;
     public int maxMP => baseMaxMP;
     public int speed_min => baseSpeedMin + bonusSpeed_min;
@@ -33,7 +33,9 @@ public class BattleUnit
     public int currentSpeed;
 
     private int attackBonus;
+    public float attack_mul = 1.0f;
     private int defenseBonus;
+    public float defense_mul = 1.0f;
     private int bonusSpeed_min;
     private int bonusSpeed_max;
 

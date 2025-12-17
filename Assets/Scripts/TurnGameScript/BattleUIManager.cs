@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -20,6 +21,8 @@ public class BattleUIManager : MonoBehaviour
     private HashSet<BattleUnit> candidateSet = new();
     private Action<BattleUnit> onTargetSelected;
     private BattleUI currentHover;
+    private TMP_Text supBtn_Text;
+    private Image supBtn_Image;
 
     void Start()
     {
@@ -55,6 +58,9 @@ public class BattleUIManager : MonoBehaviour
         {
             gm.OnPlayerSelectCommand(TurnGameManager.BattleCommandType.Support);
         });
+        
+        supBtn_Text = supportBtn.GetComponentInChildren<TMP_Text>();
+        supBtn_Image = supportBtn.GetComponent<Image>();
     }
 
     void Update()
@@ -102,6 +108,10 @@ public class BattleUIManager : MonoBehaviour
                 ExitTargetSelectMode();
             }
         }
+        else if(Input.GetMouseButtonDown(0))
+        {
+            ExitTargetSelectMode();
+        }
     }
 
     public void RegisterBattleUI(BattleUI ui)
@@ -142,7 +152,6 @@ public class BattleUIManager : MonoBehaviour
     public void ShowPlayerUI(BattleUnit unit)
     {
         playerUIPannel.SetActive(true);
-        
         skillUIPannel.SettingSkills(unit);
     }
 
@@ -171,6 +180,33 @@ public class BattleUIManager : MonoBehaviour
         candidateSet.Clear();
         onTargetSelected = null;
         HidePlayerUI();
+    }
+
+    public void CheckCanUseSupport(SupportUnit support, BattleUnit unit)
+    {
+        if(support == null || unit == null)
+        {
+            SettingButtonUI(false,false,null);
+            return;
+        }
+        bool canUseSubAction = unit.CanUseSubAction();
+        bool isCooldown = support.CanUseSupport();
+        bool canUse = canUseSubAction && isCooldown;
+
+        if (!canUse)
+        {
+            string label = !isCooldown? support.cooldown.ToString() : "support";
+            SettingButtonUI(false,true,label);
+            return;
+        }
+        SettingButtonUI(true,false, "support");
+    }
+
+    public void SettingButtonUI(bool isActive, bool isGray, string label)
+    {
+        supportBtn.interactable = isActive;
+        if(supBtn_Image != null) supBtn_Image.color = isGray ? Color.gray : Color.white;
+        if(supBtn_Text != null) supBtn_Text.text = label;
     }
 
     private void OnDestroy()

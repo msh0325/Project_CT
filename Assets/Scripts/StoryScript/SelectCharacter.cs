@@ -59,8 +59,17 @@ public class SelectCharacter : MonoBehaviour
                 Debug.Log("캐릭터 선택 필요");
             }
         });
+        
+        supports.ClearOptions();
 
-        supports.AddOptions(pcData.ownedSupports);
+        var options = new List<string>
+        {
+            "선택 안함"
+        };
+        options.AddRange(pcData.ownedSupports);
+
+        supports.AddOptions(options);
+        supports.value = 0;
     }
 
     private void SavePartyFromSlot()
@@ -112,14 +121,11 @@ public class SelectCharacter : MonoBehaviour
     private void SaveSupportCharacter()
     {
         int index = supports.value;
-        string id = supports.options[index].text;
-
-        if(!dataManager.supportData.TryGetValue(id,out var sup))
+        if(index <= 0)
         {
-            Debug.LogWarning($"supportdata에서 {id} 없음");
             pcData.selectedSupport = null;
             return;
         }
-        pcData.selectedSupport = sup;
+
     }
 }

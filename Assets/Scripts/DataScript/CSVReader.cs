@@ -366,7 +366,7 @@ public class CSVReader : MonoBehaviour
         }
     }
 
-    public void ReadSupportCSV(Dictionary <string,SupportCharacterData> saveFile)
+    public void ReadSupportCSV(Dictionary <string,SupportData> saveFile)
     {
         if(supportCSV == null)
         {
@@ -389,7 +389,7 @@ public class CSVReader : MonoBehaviour
 
             string[] cols = line.Split(',');
 
-            if(cols.Length < 4)
+            if(cols.Length < 5)
             {
                 Debug.LogWarning($"support 컬럼 개수 부족(line : {line})");
                 continue;
@@ -400,12 +400,19 @@ public class CSVReader : MonoBehaviour
                 cols[j] = cols[j].Trim().Trim('"');
             }
 
-            SupportCharacterData data = new SupportCharacterData
+            if(!Enum.TryParse<CastType>(cols[4], out var castType))
+            {
+                Debug.LogWarning($"casttype 파싱 실패 {cols[4]} (line:{line})");
+                continue;
+            }
+
+            SupportData data = new SupportData
             {
                 supportID = cols[0],
                 name = cols[1],
                 supportSkillID = cols[2],
-                attack = int.Parse(cols[3])
+                attack = int.Parse(cols[3]),
+                cast = castType
             };
 
             if(!saveFile.ContainsKey(data.supportID))

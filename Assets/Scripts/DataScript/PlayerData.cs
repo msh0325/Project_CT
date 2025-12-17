@@ -4,6 +4,7 @@ using System.Collections.Generic;
 public class PlayerData : MonoBehaviour
 {
     public static PlayerData instance;
+    public DataManager dataManager;
 
     // 로스터 : 플레이어가 현재 가지고 있는 캐릭터 정보
     public List<string> ownedCharacters = new();
@@ -14,8 +15,8 @@ public class PlayerData : MonoBehaviour
     public Dictionary<string, PartyMemberSetting> selectedPartyMap = new();
     // 서포트 로스터 : 플레이어가 현재 가지고 있는 서포트 캐릭터 정보
     public List<string> ownedSupports = new();
-    public List<SupportCharacterData> supportRoster = new();
-    public SupportCharacterData selectedSupport = new();
+    public List<SupportData> supportRoster = new();
+    public SupportData selectedSupport = new();
     public string nowSelectStageID; // 임시 변수
     // 진행 상황 : 클리어현황, 특정 기능 해금
     // 인벤토리 : 메인/서브퀘 깨면서 얻은 아이템들. 퀘스트 아이템도 포함
@@ -37,18 +38,19 @@ public class PlayerData : MonoBehaviour
 
     void Start()
     {
-        SetRoster(DataManager.instance);
-        SetSupportRoster(DataManager.instance);
+        dataManager = DataManager.instance;
+        SetRoster();
+        SetSupportRoster();
     }
 
-    private void SetRoster(DataManager dm)
+    private void SetRoster()
     {
         roster.Clear();
         rosterMap.Clear();
 
         foreach(var id in ownedCharacters)
         {
-            if (!dm.characterStats.ContainsKey(id))
+            if (!dataManager.characterStats.ContainsKey(id))
             {
                 Debug.LogWarning($"{id}가 characterstat에 없음");
                 continue;
@@ -65,13 +67,13 @@ public class PlayerData : MonoBehaviour
         }
     }
 
-    private void SetSupportRoster(DataManager dm)
+    private void SetSupportRoster()
     {
         supportRoster.Clear();
 
         foreach(var id in ownedSupports)
         {
-            if (!dm.supportData.TryGetValue(id,out var support))
+            if (!dataManager.supportData.TryGetValue(id,out var support))
             {
                 Debug.LogWarning($"{id}가 supportdata에 없음");
                 continue;
@@ -79,7 +81,6 @@ public class PlayerData : MonoBehaviour
 
             supportRoster.Add(support);
         }
-
     }
 
     private void SetDataMap()

@@ -1941,6 +1941,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a88cc816f10cb3d46976c8c10dc58b73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dataManager: {fileID: 0}
   ownedCharacters:
   - TEST_01
   - TEST_02
@@ -2036,6 +2037,7 @@ MonoBehaviour:
     name: "\uD14C\uC2A4\uD2B8\uC11C\uD3EC\uD2B81"
     supportSkillID: TEST_SP01
     attack: 15
+    cast: 0
   nowSelectStageID: TEST_ST01
 --- !u!4 &1557864987
 Transform:

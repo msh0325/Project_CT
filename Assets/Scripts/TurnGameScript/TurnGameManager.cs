@@ -7,8 +7,6 @@ using UnityEngine.SceneManagement;
 
 public class TurnGameManager : MonoBehaviour
 {
-    // 나중에 playerData 구현하면, 거기서 받아오기
-    // 당장은 직접 입력으로 테스트만
     public static TurnGameManager instance;
     public event Action<BattleUnit> OnPlayerTurnStart;
     
@@ -70,7 +68,7 @@ public class TurnGameManager : MonoBehaviour
         // 나중에 세부 구현할 때 데이터는 따로 매니저 빼서 관리하는게 좋을듯
         // 씬 전환되면서 데이터는 어케 옮김?
         // >> 캐릭터&스킬데이터는 DataManager(싱글톤 & dontdestroyonload), 
-        // 유동적인 정보(즉, 캐릭터 성장, 편성 등)은 PlayerData(싱글톤 & dontdestroyonload)        
+        // 유동적인 정보(즉, 캐릭터 성장, 편성 등)은 PlayerData(싱글톤 & dontdestroyonload)
 
         if(dataManager == null && DataManager.instance != null)
         {
@@ -121,7 +119,7 @@ public class TurnGameManager : MonoBehaviour
             }
 
             RollUnitSpeed();
-            support.TickCoolDown();
+            support?.TickCoolDown();
             
             for(int i = 0; i < turnOrder.Count; i++)
             {
@@ -155,6 +153,7 @@ public class TurnGameManager : MonoBehaviour
                     while (!isActionDone)
                     {
                         uiManager.skillUIPannel.CheckCanUseSkill(nowUnit);
+                        uiManager.CheckCanUseSupport(support,nowUnit);
                         isPlayerChecked = true;
 
                         yield return new WaitUntil(()=> isPlayerChecked == false);
@@ -259,7 +258,7 @@ public class TurnGameManager : MonoBehaviour
             pcDataManager.rosterMap.TryGetValue(ally.characterID, out var bonus);
             pcDataManager.selectedPartyMap.TryGetValue(ally.characterID,out var party);
 
-            BattleUnit unit = new(baseStat, TeamType.Ally, ally.row, bonus, party);
+            BattleUnit unit = new (baseStat, TeamType.Ally, ally.row, bonus, party);
 
             unit.partyChar = ally;
             allies.Add(unit);
@@ -311,6 +310,20 @@ public class TurnGameManager : MonoBehaviour
             data = supportData,
             supportSkill = skill
         };
+
+        if(support.data.cast == CastType.Passive)
+        {
+            // 패시브 스킬 작동
+            // 당장은 처음 시작할 때 적용하고 시작. 나중에 여러 서포트 스킬 만들 때, 특정 조건에만 적용된다던가
+            // 특정 상황에만 적용되는 스킬이 있으면 수정 필요
+            var targets = allies.Where(u=>!u.isDead && skill.range.Contains(u.row));
+            foreach(var target in targets)
+            {
+                Debug.Log($"{target.name}의 서포트 스킬 미적용 attack : {target.attack}");
+                target.attack_mul *= skill.multiplier;
+                Debug.Log($"{target.name}의 서포트 스킬 적용 attack : {target.attack}");
+            }
+        }
     }
 
     private void SetUpWaveBattleUnits(int waveIndex)
@@ -400,7 +413,7 @@ public class TurnGameManager : MonoBehaviour
 
     private bool HasNextWave()
     {
-        if(!dataManager.waveDatas.TryGetValue(stageID,out _))
+        if (!dataManager.waveDatas.ContainsKey(stageID))
         {
             return false;
         }
@@ -534,7 +547,7 @@ public class TurnGameManager : MonoBehaviour
                         break;
                 }
 
-                support.StartCooldown();
+                support?.StartCooldown();
                 unit.UseSubAction();
                 return false;
             
@@ -559,17 +572,11 @@ public class TurnGameManager : MonoBehaviour
         switch (skill.targetType)
         {
             case TargetType.EnemySingle:
-                source = isAllyteam? enemies:allies;
-                break;
-
             case TargetType.EnemyAll:
                 source = isAllyteam? enemies:allies;
                 break;
 
             case TargetType.AllySingle:
-                source = isAllyteam? allies:enemies;
-                break;
-
             case TargetType.AllyAll:
                 source = isAllyteam? allies:enemies;
                 break;
@@ -592,60 +599,69 @@ public class TurnGameManager : MonoBehaviour
     {
         if(!isPlayerChecked) return;
 
-        if(cmd == BattleCommandType.Attack)
+        switch (cmd)
         {
-            var candidates = AttackRangeTargets(currentUnit);
-            uiManager.EnterTargetSelectMode(candidates, (target) =>
-            {
-                command = cmd;
-                selectedTarget = target;
-                isPlayerChecked = false;
-            });
-            return;
+            case BattleCommandType.Attack:
+                {
+                    var candidates = AttackRangeTargets(currentUnit);
+                    uiManager.EnterTargetSelectMode(candidates, (target) =>
+                    {
+                        command = cmd;
+                        selectedTarget = target;
+                        selectSkill = skill;
+                        isPlayerChecked = false;
+                    });
+                }
+                break;
+                
+            case BattleCommandType.Skill:
+                {
+                    var candidates = AttackRangeTargets(currentUnit);
+                    uiManager.EnterTargetSelectMode(candidates, (target) =>
+                    {
+                        command = cmd;
+                        selectedTarget = target;
+                        selectSkill = skill;
+                        isPlayerChecked = false;
+                    });
+                }
+                break;
+            
+            case BattleCommandType.Defend:
+                {
+                    var candidates = DefenseRangeTarget(currentUnit);
+                    uiManager.EnterTargetSelectMode(candidates, (target) =>
+                    {
+                        command = cmd;
+                        selectedTarget = target;
+                        selectSkill = skill;
+                        isPlayerChecked = false;
+                    });
+                }
+                break;
+            
+            case BattleCommandType.Item:
+                {
+                    command = cmd;
+                    isPlayerChecked = false;
+                    selectSkill = skill;
+                }
+                break;
+            
+            case BattleCommandType.Support:
+                {
+                    if(support == null) return;
+                    var candidates = SkillRangeTargets(currentUnit,support.supportSkill);
+                    uiManager.EnterTargetSelectMode(candidates, (target) =>
+                    {
+                        command = cmd;
+                        selectedTarget = target;
+                        selectSkill = support.supportSkill;
+                        isPlayerChecked = false;
+                    });
+                }
+                break;
         }
-
-        if(cmd == BattleCommandType.Skill)
-        {
-            var candidates = SkillRangeTargets(currentUnit, skill);
-            uiManager.EnterTargetSelectMode(candidates, (target) =>
-            {
-                command = cmd;
-                selectedTarget = target;
-                selectSkill = skill;
-                isPlayerChecked = false;
-            });
-            return;
-        }
-
-        if(cmd == BattleCommandType.Defend)
-        {
-            var candidates = DefenseRangeTarget(currentUnit);
-            uiManager.EnterTargetSelectMode(candidates, (target) =>
-            {
-                command = cmd;
-                selectedTarget = target;
-                selectSkill = null;
-                isPlayerChecked = false;
-            });
-            return;
-        }
-
-        if(cmd == BattleCommandType.Support)
-        {
-            var candidates = SkillRangeTargets(currentUnit,support.supportSkill);
-            uiManager.EnterTargetSelectMode(candidates, (target) =>
-            {
-                command = cmd;
-                selectedTarget = target;
-                selectSkill = support.supportSkill;
-                isPlayerChecked = false;
-            });
-            return;
-        }
-        
-        command = cmd;
-        isPlayerChecked = false;
-        selectSkill = skill;
     }
 
     public void DeleteUIList(BattleUI ui)

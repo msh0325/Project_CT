@@ -1,0 +1,3 @@
+SupportID,Name,SupportSkill,Attack,Cast
+TEST_SP01,테스트서포트1,TEST_SP01,15,Active
+TEST_SP02,테스트서포트2,TEST_SP02,20,Passive
