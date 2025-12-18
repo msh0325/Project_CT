@@ -138,8 +138,8 @@ public class CSVReader : MonoBehaviour
             {
                 skillID = cols[0],
                 skillName = cols[1],
-                random_min = int.Parse(cols[2]),
-                random_max = int.Parse(cols[3]),
+                random_min = float.Parse(cols[2]),
+                random_max = float.Parse(cols[3]),
                 multiplier = float.Parse(cols[4]),
                 useMP = int.Parse(cols[5]),
                 coolTime = int.Parse(cols[6]),

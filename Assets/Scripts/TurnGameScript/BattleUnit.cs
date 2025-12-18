@@ -186,12 +186,15 @@ public class BattleUnit
         leftSubAction--;
     }
     
-    public void Attack(BattleUnit target, System.Random rnd)
+    public void Attack(BattleUnit target)
     {
         int targetDEF = target.defense;
-        int dmg = attack + rnd.Next(0,3);
-
-        int realDMG = Mathf.Max(dmg-targetDEF,0);
+        //int dmg = attack + rnd.Next(0,3);
+        //int realDMG = Mathf.Max(dmg-targetDEF,0);
+        // 데미지 공식 다른 버전 : attack * skill.multiplier(없으면 생략) * (attack/(attack + targetdef)) * randMultiflier
+        float rndMul = UnityEngine.Random.Range(1,1.2f);
+        int realDMG = Mathf.RoundToInt(attack * (attack/ (float)(attack+targetDEF))*rndMul);
+        Debug.Log(realDMG);
         target.currentHP = Mathf.Max(target.currentHP-realDMG, 0);
         currentMP = Mathf.Min(currentMP + 10, baseMaxMP);
     }
@@ -202,10 +205,12 @@ public class BattleUnit
         StartCoolDown(skill);
     }
 
-    public int CalcSkillRealDamage(SkillData skill, System.Random rnd)
+    public int CalcSkillRealDamage(SkillData skill)
     {
-        int randomBonus = rnd.Next(skill.random_min, skill.random_max);
-        float dmg = (attack * skill.multiplier) + randomBonus;
+        //int randomBonus = rnd.Next(skill.random_min, skill.random_max);
+        //float dmg = (attack * skill.multiplier) + randomBonus;
+        float randomBonus = UnityEngine.Random.Range(skill.random_min,skill.random_max);
+        float dmg = attack * skill.multiplier * randomBonus;
         return Mathf.RoundToInt(dmg);
     }
 
@@ -214,7 +219,8 @@ public class BattleUnit
         switch (skill.skillType)
         {
             case SkillType.Damage:
-                int realDMG = Mathf.Max(dmg-target.defense,0);
+                //int realDMG = Mathf.Max(dmg-target.defense,0);
+                int realDMG = Mathf.RoundToInt(dmg * (attack / (float)(attack+target.defense)));
                 target.currentHP = Mathf.Max(target.currentHP - realDMG, 0);
                 Debug.Log($"{name}이 {target.name}를 향해 공격. 데미지 : {dmg}, 실제 데미지 : {realDMG}");
                 Debug.Log($"{target.name}의 남은 HP {target.currentHP}");

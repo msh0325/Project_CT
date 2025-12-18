@@ -20,6 +20,7 @@ public class PartySlot : MonoBehaviour, IDropHandler
     {
         if(character != null)
         {
+            character.group.alpha = 1;
             character.SelectCharacter(false);
             character.nowSlot = null;
             character = null;
@@ -40,6 +41,7 @@ public class PartySlot : MonoBehaviour, IDropHandler
         if (!IsEmpty())
         {
             character.SelectCharacter(false);
+            character.nowSlot = null;
 
             if(currentBtn != null)
             {
@@ -69,5 +71,9 @@ public class PartySlot : MonoBehaviour, IDropHandler
         character = charBtn;
         character.nowSlot = this;
         character.SelectCharacter(true);
+        character.dropDragGhost = true;
+
+        character.ShowSkillPannel();
+
     }
 }

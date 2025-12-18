@@ -76,9 +76,11 @@ public class SupportUnit
         cooldown = Mathf.Max(cooldown-1,0);
     }
     
-    public int CalcDamage(System.Random rnd)
+    public int CalcDamage()
     {
-        return Mathf.RoundToInt(data.attack * supportSkill.multiplier + rnd.Next(supportSkill.random_min,supportSkill.random_max));
+        //return Mathf.RoundToInt(data.attack * supportSkill.multiplier + rnd.Next(supportSkill.random_min,supportSkill.random_max));
+        float randomBonus = UnityEngine.Random.Range(supportSkill.random_min,supportSkill.random_max);
+        return Mathf.RoundToInt(data.attack * supportSkill.multiplier * randomBonus);
     }
 
     public bool CanUseSupport()

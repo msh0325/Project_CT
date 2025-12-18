@@ -27,7 +27,6 @@ public class BattleUIManager : MonoBehaviour
     void Start()
     {
         gm = TurnGameManager.instance;
-
         gm.OnPlayerTurnStart += ShowPlayerUI;
         skillUIPannel.uiManager = this;
 

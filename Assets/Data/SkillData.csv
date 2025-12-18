@@ -1,9 +1,9 @@
 Skill_ID,Skill_Name,Random_Min,Random_Max,Multiplier,Use_MP,CoolTime,SkillType,TargetType,Range,EffectID
-TEST_SK01,테스트일격,1,3,1.2,15,0,Damage,EnemySingle,Front/Middle,
-TEST_SK02,테스트전체,-3,3,1.4,30,3,Damage,EnemyAll,Front/Middle/Back,
-TEST_SK03,테스트출혈,0,5,1.1,12,2,Damage,EnemySingle,Back,EF_01,
-TEST_SK04,테스트독,0,3,0.9,10,3,Damage,EnemySingle,Front/Middle,EF_02
-TEST_SK05,테스트힐,-1,3,1,15,3,Heal,AllySingle,Front/Middle/Back,EF_03
-TEST_SK06,테스트힐2,0,5,1,10,2,Heal,Self,Front/Middle/Back,
-TEST_SP01,액티브서포트,3,4,1,0,3,Damage,EnemyAll,Front/Middle/Back,
-TEST_SP02,패시브서포트,0,0,1.25,0,0,Buff,AllyAll,Front/Middle/Back,
+TEST_SK01,테스트일격,1.0,1.2,1.2,15,0,Damage,EnemySingle,Front/Middle,
+TEST_SK02,테스트전체,0.7,1.1,1.4,30,3,Damage,EnemyAll,Front/Middle/Back,
+TEST_SK03,테스트출혈,0.9,1.2,1.1,12,2,Damage,EnemySingle,Back,EF_01,
+TEST_SK04,테스트독,1.0,1.3,0.9,10,3,Damage,EnemySingle,Front/Middle,EF_02
+TEST_SK05,테스트힐,0.9,1.2,1,15,3,Heal,AllySingle,Front/Middle/Back,EF_03
+TEST_SK06,테스트힐2,1.0,1.3,1,10,2,Heal,Self,Front/Middle/Back,
+TEST_SP01,액티브서포트,1.2,1.3,1,0,3,Damage,EnemyAll,Front/Middle/Back,
+TEST_SP02,패시브서포트,1,1,1.25,0,0,Buff,AllyAll,Front/Middle/Back,

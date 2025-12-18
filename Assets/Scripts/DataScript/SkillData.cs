@@ -4,8 +4,8 @@ public class SkillData
 {
     public string skillID {get;set;}
     public string skillName {get;set;}
-    public int random_min {get;set;}
-    public int random_max {get;set;}
+    public float random_min {get;set;}
+    public float random_max {get;set;}
     public float multiplier {get;set;}
     public int useMP {get;set;}
     public int coolTime {get;set;}

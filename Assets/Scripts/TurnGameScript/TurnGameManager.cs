@@ -182,7 +182,7 @@ public class TurnGameManager : MonoBehaviour
                     target = allies.FirstOrDefault(u =>!u.isDead);
                     if(target != null)
                     {
-                        nowUnit.Attack(target,rnd);                    
+                        nowUnit.Attack(target);                    
                     }
                     if (CheckBattleOver())
                     {
@@ -466,7 +466,7 @@ public class TurnGameManager : MonoBehaviour
         {
             case BattleCommandType.Attack:
                 if(!unit.CanUseMainAction()) return true;
-                if(target != null) unit.Attack(target,rnd);
+                if(target != null) unit.Attack(target);
                 unit.UseMainAction();
                 return !unit.CanUseMainAction();
             
@@ -475,7 +475,7 @@ public class TurnGameManager : MonoBehaviour
                 if(!unit.CanUseSkill(selectSkill.skillID)) return false;
 
                 unit.ConsumeSkillCost(selectSkill);
-                int dmg = unit.CalcSkillRealDamage(selectSkill,rnd);
+                int dmg = unit.CalcSkillRealDamage(selectSkill);
 
                 switch (selectSkill.targetType)
                 {
@@ -521,7 +521,7 @@ public class TurnGameManager : MonoBehaviour
                 if(support == null) return false;
                 if(!support.CanUseSupport()) return false;
                 Debug.Log("use supportSkill");
-                int supDmg = support.CalcDamage(rnd);
+                int supDmg = support.CalcDamage();
                 switch (selectSkill.targetType)
                 {
                     case TargetType.AllySingle:
@@ -616,7 +616,7 @@ public class TurnGameManager : MonoBehaviour
                 
             case BattleCommandType.Skill:
                 {
-                    var candidates = AttackRangeTargets(currentUnit);
+                    var candidates = SkillRangeTargets(currentUnit,skill);
                     uiManager.EnterTargetSelectMode(candidates, (target) =>
                     {
                         command = cmd;

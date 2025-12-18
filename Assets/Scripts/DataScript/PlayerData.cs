@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
 
 public class PlayerData : MonoBehaviour
 {
@@ -39,6 +40,7 @@ public class PlayerData : MonoBehaviour
     void Start()
     {
         dataManager = DataManager.instance;
+        
         SetRoster();
         SetSupportRoster();
     }
@@ -50,7 +52,7 @@ public class PlayerData : MonoBehaviour
 
         foreach(var id in ownedCharacters)
         {
-            if (!dataManager.characterStats.ContainsKey(id))
+            if (!dataManager.characterStats.TryGetValue(id,out var stat))
             {
                 Debug.LogWarning($"{id}가 characterstat에 없음");
                 continue;
@@ -60,6 +62,7 @@ public class PlayerData : MonoBehaviour
             {
                 characterID = id,
                 isSelectable = true,
+                learnedSkillID = stat.skillID.ToList()
             };
 
             roster.Add(member);
