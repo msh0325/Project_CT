@@ -9,6 +9,7 @@ public enum TeamType
     Enemy
 }
 
+[Serializable]
 public class BattleUnit
 {
     public CharacterStat baseStat;
@@ -17,6 +18,7 @@ public class BattleUnit
     public string name;
     public int baseAttack;
     public int baseDefense;
+    public float baseCritical;
     public int baseMaxHP;
     public int baseMaxMP;
     public int baseSpeedMin;
@@ -26,6 +28,7 @@ public class BattleUnit
     public int currentMP;
     public int attack => Mathf.RoundToInt((baseAttack + attackBonus) * attack_mul);
     public int defense => Mathf.RoundToInt((baseDefense + defenseBonus) * defense_mul);
+    public float critical => Mathf.Clamp(baseCritical + criticalBonus,0,0.9f); // 크리티컬 확률 90퍼까지
     public int maxHP => baseMaxHP;
     public int maxMP => baseMaxMP;
     public int speed_min => baseSpeedMin + bonusSpeed_min;
@@ -36,6 +39,7 @@ public class BattleUnit
     public float attack_mul = 1.0f;
     private int defenseBonus;
     public float defense_mul = 1.0f;
+    public float criticalBonus;
     private int bonusSpeed_min;
     private int bonusSpeed_max;
 
@@ -74,6 +78,7 @@ public class BattleUnit
         bool isBonusNull = bonusStat == null;
         baseAttack = stat.attack + (isBonusNull? 0 : bonusStat.bonusAttack);
         baseDefense = stat.defense + (isBonusNull? 0 : bonusStat.bonusDefense);
+        baseCritical = stat.critical + (isBonusNull? 0: bonusStat.bonusCritical);
         baseMaxHP = stat.hp + (isBonusNull ? 0 : bonusStat.bonusHP);
         baseMaxMP = stat.mp + (isBonusNull ? 0  : bonusStat.bonusMP);
         baseSpeedMin = stat.speed_min;
@@ -172,7 +177,6 @@ public class BattleUnit
             Debug.Log("subaction 사용 횟수 모두 소모");
             return false;
         }
-        
         return true;
     }
 
@@ -189,12 +193,12 @@ public class BattleUnit
     public void Attack(BattleUnit target)
     {
         int targetDEF = target.defense;
-        //int dmg = attack + rnd.Next(0,3);
-        //int realDMG = Mathf.Max(dmg-targetDEF,0);
-        // 데미지 공식 다른 버전 : attack * skill.multiplier(없으면 생략) * (attack/(attack + targetdef)) * randMultiflier
+        // 데미지 공식 다른 버전 : 
+        // attack * skill.multiplier(없으면 생략) * (attack/(attack + targetdef)) * randMultiflier
+        float cri_rate = UnityEngine.Random.Range(0,100f) < critical? 1.5f:1.0f;
         float rndMul = UnityEngine.Random.Range(1,1.2f);
-        int realDMG = Mathf.RoundToInt(attack * (attack/ (float)(attack+targetDEF))*rndMul);
-        Debug.Log(realDMG);
+        int realDMG = Mathf.RoundToInt(attack * (attack/ (float)(attack+targetDEF)) * rndMul * cri_rate);
+
         target.currentHP = Mathf.Max(target.currentHP-realDMG, 0);
         currentMP = Mathf.Min(currentMP + 10, baseMaxMP);
     }
@@ -207,8 +211,6 @@ public class BattleUnit
 
     public int CalcSkillRealDamage(SkillData skill)
     {
-        //int randomBonus = rnd.Next(skill.random_min, skill.random_max);
-        //float dmg = (attack * skill.multiplier) + randomBonus;
         float randomBonus = UnityEngine.Random.Range(skill.random_min,skill.random_max);
         float dmg = attack * skill.multiplier * randomBonus;
         return Mathf.RoundToInt(dmg);
@@ -219,7 +221,6 @@ public class BattleUnit
         switch (skill.skillType)
         {
             case SkillType.Damage:
-                //int realDMG = Mathf.Max(dmg-target.defense,0);
                 int realDMG = Mathf.RoundToInt(dmg * (attack / (float)(attack+target.defense)));
                 target.currentHP = Mathf.Max(target.currentHP - realDMG, 0);
                 Debug.Log($"{name}이 {target.name}를 향해 공격. 데미지 : {dmg}, 실제 데미지 : {realDMG}");
@@ -227,9 +228,11 @@ public class BattleUnit
                 break;
 
             case SkillType.Buff:
+                Debug.Log($"{name}이 {target.name}에게 버프");
                 break;
 
             case SkillType.Debuff:
+                Debug.Log($"{name}이 {target.name}에게 디버프");
                 break;
 
             case SkillType.Heal:
@@ -250,7 +253,6 @@ public class BattleUnit
         if(skill.coolTime >= 0)
         {
             cooldowns[skill.skillID] = skill.coolTime;
-            Debug.Log($"{skill.skillName} : {cooldowns[skill.skillID]}");
         }
     }
 
@@ -270,13 +272,13 @@ public class BattleUnit
         {
             return cooltime;
         }
-        
         return -1;
     }
 
     public void ApplyEffect(EffectData effect)
     {
         var id = activeEffects.FirstOrDefault(e=>e.data.effectID == effect.effectID);        
+        bool state_effect = effect.status != StatusType.None;
 
         if(id == null)
         {
@@ -284,8 +286,15 @@ public class BattleUnit
             {
                 data = effect,
                 damage = effect.damage,
-                duration = effect.duration
+                statMul = effect.statmul,
+                duration = effect.duration,
+                statEnable = effect.applyTiming == ApplyTiming.Immediate
             });
+
+            if(state_effect && effect.applyTiming == ApplyTiming.Immediate)
+            {
+                CalcBuff();
+            }
             return;
         }
 
@@ -310,25 +319,36 @@ public class BattleUnit
 
     public void CheckEffect(BattleState timing)
     {
-        Debug.Log($"timing : {timing}");
-        
+        bool buffDirty = false;
+
         for(int i = activeEffects.Count-1 ; i >=0 ; i--)
         {
             var e = activeEffects[i];
 
             if(e.data.timing != timing) continue;
 
+            TakeEffect(e);
+
+            if(!e.statEnable && e.data.applyTiming == ApplyTiming.AfterTick && e.data.status != StatusType.None)
+            {
+                e.statEnable = true;
+                buffDirty = true;
+            }
             e.duration--;
 
-            if(e.duration < 0)
+            if(e.duration <= 0)
             {
                 activeEffects.RemoveAt(i);
+                if(e.data.status != StatusType.None && e.statEnable)
+                {
+                    buffDirty = true;                    
+                }
                 continue;
             }
-            
-            TakeEffect(e);
         }
-        CalcBuff();
+        // dirtyFlag 최적화 이용해 버프/디버프 갱신. 
+        // 항상 값을 초기화하고 갱신하는게 아니라, 값이 바뀌었을 때(적용 / 해제)만 갱신하는 방법.
+        if(buffDirty) CalcBuff();
     }
 
     public void TakeEffect(ActiveEffect e)
@@ -336,13 +356,25 @@ public class BattleUnit
         switch (e.data.type)
         {
             case EffectType.Bleed:
-            case EffectType.Poison:
             case EffectType.Burn:
-                int baseDmg = e.damage;
-                currentHP = Mathf.Max(currentHP - baseDmg,0);
-                Debug.Log($"{name}가 {e.data.type} 데미지 입음 : {e.damage}, 남은 턴수 {e.duration}");
-                break;
-            
+                {
+                    int baseDmg = e.damage;
+                    currentHP = Mathf.Max(currentHP - baseDmg,0);
+                    Debug.Log($"{name}가 {e.data.type} 데미지 입음 : {e.damage}, 남은 턴수 {e.duration}");
+                    break;
+                }
+
+            case EffectType.Poison:
+                {
+                    int baseDmg = e.damage;
+                    currentHP = Mathf.Max(currentHP - baseDmg,0);
+                    Debug.Log($"{name}가 {e.data.type} 데미지 입음 : {e.damage}, 남은 턴수 {e.duration}");
+                    int mpDMG = Mathf.RoundToInt(maxMP * e.statMul);
+                    currentMP = Mathf.Max(currentMP - mpDMG,0);
+                    Debug.Log($"{name}의 mp 감소 {currentMP}");
+                    break;
+                }
+                
             case EffectType.StatBuff:
             case EffectType.StatDebuff:
                 Debug.Log($"{name}가 {e.data.type} 얻음. 남은 턴수 {e.duration}");
@@ -359,17 +391,14 @@ public class BattleUnit
         attackBonus = 0;
         defenseBonus = 0;
         bonusSpeed_max = 0;
+        bonusSpeed_min = 0;
 
         foreach(var e in activeEffects)
         {
-            if(e.data.type != EffectType.StatBuff && e.data.type != EffectType.StatDebuff)
-                continue;
-            
-            int value = e.damage;
-            if(e.data.type == EffectType.StatDebuff) 
-            {
-                value = -value;
-            }
+            if(!e.statEnable) continue;
+            if(e.data.status == StatusType.None) continue;
+               
+            float mul = e.statMul;
 
             switch (e.data.status)
             {
@@ -377,15 +406,29 @@ public class BattleUnit
                     break;
 
                 case StatusType.Attack:
-                    attackBonus += value;
+                    {
+                        int value = Mathf.RoundToInt(attack * mul);
+                        if(e.data.type != EffectType.StatBuff) value = -value;
+                        attackBonus += value;
+                        Debug.Log($"{name}'s attack {value} 증/감 : {attack}");
+                    }
                     break;
 
                 case StatusType.Defense:
-                    defenseBonus += value;
+                    {
+                        int value = Mathf.RoundToInt(defense * mul);
+                        if(e.data.type != EffectType.StatBuff) value = -value;
+                        defenseBonus += value;
+                        Debug.Log($"{name}'s defense {value} 증/감 : {defense}");
+                    }
                     break;
 
                 case StatusType.Speed:
-                    bonusSpeed_max += value;
+                    {
+                        int value = e.damage;
+                        bonusSpeed_max += value;
+                        bonusSpeed_min += value;
+                    }
                     break;
             }
         }

@@ -12,6 +12,7 @@ public class CharacterStat // 캐릭터 기본 세팅
     public int mp {get;set;}
     public int attack {get;set;}
     public int defense {get;set;}
+    public float critical {get;set;}
     public string[] skillID {get;set;}
 }
 
@@ -25,12 +26,14 @@ public class PlayerCharacterStat // 캐릭터의 성장 / 스킬 여부
 
     public int bonusAttack;
     public int bonusDefense;
+    public float bonusCritical;
 
     public int bonusMainAction;
     public int bonusSubAction;
 
     public List<string> learnedSkillID = new();
     public List<string> defaultEquippedSkillID = new();
+    public Dictionary<string, ItemData> equippedItemID = new();
 
     public bool isSelectable = true;
 }
@@ -78,7 +81,6 @@ public class SupportUnit
     
     public int CalcDamage()
     {
-        //return Mathf.RoundToInt(data.attack * supportSkill.multiplier + rnd.Next(supportSkill.random_min,supportSkill.random_max));
         float randomBonus = UnityEngine.Random.Range(supportSkill.random_min,supportSkill.random_max);
         return Mathf.RoundToInt(data.attack * supportSkill.multiplier * randomBonus);
     }

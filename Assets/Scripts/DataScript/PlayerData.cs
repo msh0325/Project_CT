@@ -21,6 +21,7 @@ public class PlayerData : MonoBehaviour
     public string nowSelectStageID; // 임시 변수
     // 진행 상황 : 클리어현황, 특정 기능 해금
     // 인벤토리 : 메인/서브퀘 깨면서 얻은 아이템들. 퀘스트 아이템도 포함
+    public Dictionary<string, ItemData> itemBox = new();
     // 이벤트 플래그 : 튜토리얼 클리어, NPC 만남 등
 
     void Awake()

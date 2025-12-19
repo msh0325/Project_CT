@@ -179,7 +179,7 @@ public class CSVReader : MonoBehaviour
 
             string[] cols = line.Split(',');
 
-            if(cols.Length < 8)
+            if(cols.Length < 10)
             {
                 Debug.LogWarning("Effect 컬럼 개수 부족");
                 continue;
@@ -202,15 +202,21 @@ public class CSVReader : MonoBehaviour
                 continue;
             }
 
-            if(!Enum.TryParse<StackType>(cols[3],out var stackType))
+            if(!Enum.TryParse<ApplyTiming>(cols[3],out var apply))
             {
-                Debug.LogWarning($"stacktype 파싱 실패 : {cols[3]}(line:{line})");
+                Debug.LogWarning($"applytiming 파싱 실패 : {cols[3]}(line:{line})");
                 continue;
             }
 
-            if(!Enum.TryParse<StatusType>(cols[7],out var statusType))
+            if(!Enum.TryParse<StackType>(cols[4],out var stackType))
             {
-                Debug.LogWarning($"statustype 파싱 실패 : {cols[7]}(line:{line})");
+                Debug.LogWarning($"stacktype 파싱 실패 : {cols[4]}(line:{line})");
+                continue;
+            }
+
+            if(!Enum.TryParse<StatusType>(cols[9],out var statusType))
+            {
+                Debug.LogWarning($"statustype 파싱 실패 : {cols[9]}(line:{line})");
                 continue;
             }
 
@@ -219,10 +225,12 @@ public class CSVReader : MonoBehaviour
                 effectID = cols[0],
                 type = effectType,
                 timing = effectTiming,
+                applyTiming = apply,
                 stack = stackType,
-                duration = int.Parse(cols[4]),
-                damage = int.Parse(cols[5]),
-                maxDamage = int.Parse(cols[6]),
+                duration = int.Parse(cols[5]),
+                damage = int.Parse(cols[6]),
+                maxDamage = int.Parse(cols[7]),
+                statmul = float.Parse(cols[8]),
                 status = statusType
             };
 

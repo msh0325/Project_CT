@@ -351,7 +351,6 @@ public class TurnGameManager : MonoBehaviour
         foreach(BattleUnit unit in turnOrder)
         {
             unit.RollSpeed(rnd);
-            Debug.Log($"{unit.name}'s speed : {unit.currentSpeed}");
         }
 
         // 속도순으로 내림차순. 그러나 속도가 같은 경우 이전 순서대로 정렬됨
@@ -445,8 +444,6 @@ public class TurnGameManager : MonoBehaviour
                 turnOrder.Add(unit);
                 unit.InitSkills(dataManager.skillDatas);
 
-                //Debug.Log($"add new {unit.team} {unit.name}, row : {unit.row}");
-
                 var view = Instantiate(testPrefab,enemySlots[(int)unit.row].position,Quaternion.identity);
                 view.Init(unit);
                 uis.Add(view);
@@ -507,6 +504,7 @@ public class TurnGameManager : MonoBehaviour
                 return !unit.CanUseMainAction();
 
             case BattleCommandType.Defend:
+                if(!unit.CanUseMainAction()) return true;
                 Debug.Log("use defend");
                 return true;
 
