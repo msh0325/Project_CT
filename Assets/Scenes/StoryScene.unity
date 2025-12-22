@@ -1633,6 +1633,8 @@ MonoBehaviour:
   stageCSV: {fileID: 4900000, guid: 5be1c4abf724dd543ab9703f39614ca9, type: 3}
   waveCSV: {fileID: 4900000, guid: 5dd296ba41668254fa664c29d31ca65a, type: 3}
   supportCSV: {fileID: 4900000, guid: e03d8ac2d8d955f44b9a4dd4f7708dca, type: 3}
+  itemCSV: {fileID: 4900000, guid: 2a52992a7284c9b40a832c5e3b53aded, type: 3}
+  passiveCSV: {fileID: 0}
 --- !u!4 &851510998
 Transform:
   m_ObjectHideFlags: 0
@@ -2359,6 +2361,10 @@ MonoBehaviour:
     attack: 0
     cast: 0
   nowSelectStageID: TEST_ST01
+  itemList:
+  - TEST_IT01
+  - TEST_IT02
+  itemBox: []
 --- !u!4 &1557864987
 Transform:
   m_ObjectHideFlags: 0

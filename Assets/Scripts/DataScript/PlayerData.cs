@@ -21,7 +21,9 @@ public class PlayerData : MonoBehaviour
     public string nowSelectStageID; // 임시 변수
     // 진행 상황 : 클리어현황, 특정 기능 해금
     // 인벤토리 : 메인/서브퀘 깨면서 얻은 아이템들. 퀘스트 아이템도 포함
-    public Dictionary<string, ItemData> itemBox = new();
+    public List<string> itemList = new();
+    public List<ItemData> itemBox = new();
+    public Dictionary<string, ItemData> itemBoxMap = new();
     // 이벤트 플래그 : 튜토리얼 클리어, NPC 만남 등
 
     void Awake()
@@ -44,6 +46,16 @@ public class PlayerData : MonoBehaviour
         
         SetRoster();
         SetSupportRoster();
+
+        // item 잘 파서됐는지 확인용 코드
+        foreach(var id in itemList)
+        {
+            if(dataManager.itemData.TryGetValue(id, out var item))
+            {
+                itemBox.Add(item);
+                itemBoxMap.Add(id,item);
+            }
+        }
     }
 
     private void SetRoster()

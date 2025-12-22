@@ -1,0 +1,3 @@
+ItemID,Type,Name,EquipStats,PassiveID,Target,ItemEffect,maxStack,cooltime
+TEST_IT01,Equipment,테스트장갑,hp+15;def*1.1,PS_HP_HIGH,,,,
+TEST_IT02,Consumable,테스트회복약,,,AllySingle,heal:30,3,2

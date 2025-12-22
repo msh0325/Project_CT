@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 public enum ItemType // 장착템 / 소모템 구분
 {
@@ -7,12 +7,7 @@ public enum ItemType // 장착템 / 소모템 구분
     Consumable
 }
 
-public enum ModifireType // 스탯 적용 방식. 고정형 / 배율형
-{
-    Flat,
-    Mul
-}
-
+[Serializable]
 public class ItemData
 {
     public string itemID;
@@ -22,7 +17,6 @@ public class ItemData
     public bool isStackable;
 
     // 장착템
-    public ModifireType modifireType;
     public EquipmentStats equipmentStats;
     public string passiveID;
 
@@ -33,18 +27,39 @@ public class ItemData
     public int cooltime;
 }
 
+[Serializable]
 public class EquipmentStats
 {
-    public int flatHP;
-    public int flatMP;
-    public int flatSpeed;
-    public float mulAttack;
-    public float mulDefense;
-    public float mulCritical;
+    public int flatHP = 0;
+    public int flatMP = 0;
+    public int flatAtk = 0;
+    public int flatDef = 0;
+    public int flatSpeed = 0;
+
+    public float mulHP = 1.0f;
+    public float mulMP = 1.0f;
+    public float mulAtk = 1.0f;
+    public float mulDef = 1.0f;
+    public float mulCri = 1.0f;
 }
 
+[Serializable]
 public class ItemEffect
 {
     public string effectID;
-    public int value;
+    public float value;
+    public int duration;
+}
+
+[Serializable]
+public class ItemPassive
+{
+    public string passiveID;
+    public BattleState timing;
+
+    public string condition;
+    public float condition_value;
+
+    public StatusType stat;
+    public float value;
 }

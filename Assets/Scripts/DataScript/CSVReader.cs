@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using System.Globalization;
 
 public class CSVReader : MonoBehaviour
 {
@@ -13,6 +14,8 @@ public class CSVReader : MonoBehaviour
     public TextAsset stageCSV;
     public TextAsset waveCSV;
     public TextAsset supportCSV;
+    public TextAsset itemCSV;
+    public TextAsset passiveCSV;
     
     public void ReadCharacterCSV(Dictionary<string, CharacterStat> saveFile)
     {
@@ -316,7 +319,7 @@ public class CSVReader : MonoBehaviour
 
             if(cols.Length < 5)
             {
-                Debug.LogWarning("wave 컬럼 개수 부족");
+                Debug.LogWarning($"wave 컬럼 개수 부족 line : {line}");
                 continue;
             }
             
@@ -426,6 +429,343 @@ public class CSVReader : MonoBehaviour
             if(!saveFile.ContainsKey(data.supportID))
             {
                 saveFile.Add(data.supportID,data);
+            }
+        }
+    }
+
+    public void ReadItemCSV(Dictionary<string, ItemData> saveFile)
+    {
+        if(itemCSV == null)
+        {
+            Debug.LogError("itemCSVFile이 비어있습니다");
+            return;
+        }
+
+        string[] lines = itemCSV.text.Split('\n');
+        if(lines.Length <= 1)
+        {
+            Debug.LogWarning("csv 파일에 데이터가 없음");
+            return;
+        }
+
+        for(int i = 1; i < lines.Length; i++)
+        {
+            string line = lines[i].Trim();
+
+            if(string.IsNullOrEmpty(line)) continue;
+
+            string[] cols = line.Split(',');
+
+            if(cols.Length < 9)
+            {
+                Debug.LogWarning($"item 컬럼 개수 부족 line : {line}");
+                continue;
+            }
+
+            for(int j = 0; j < cols.Length;j++)
+            {
+                cols[j] = cols[j].Trim().Trim('"');
+            }
+
+            if(!Enum.TryParse<ItemType>(cols[1],out var type))
+            {
+                Debug.LogWarning($"itemtype 파싱 실패 : {cols[1]} (line:{line})");
+                continue;
+            }
+
+            EquipmentStats equipStat = new();
+
+            if (!string.IsNullOrEmpty(cols[3]))
+            {
+                var stats = cols[3].Split(';',StringSplitOptions.RemoveEmptyEntries);
+                foreach(var stat in stats)
+                {
+                    var token = stat.Trim();
+
+                    int plusidx = token.IndexOf('+');
+                    int multiidx = token.IndexOf('*');
+
+                    bool isPlus = plusidx >= 0;
+                    bool isMulti = multiidx >= 0;
+
+                    if(isPlus == isMulti)
+                    {
+                        Debug.LogWarning($"equitstat 토큰 오류 : {token}");
+                        continue;
+                    }
+
+                    int index = isPlus? plusidx:multiidx;
+                    char op = isPlus? '+':'*';
+
+                    string key = token[..index].Trim().ToLowerInvariant();
+                    string valStr = token[(index+1)..].Trim();
+
+                    if(op == '+')
+                    {
+                        if(!int.TryParse(valStr, NumberStyles.Integer, CultureInfo.InvariantCulture, out var v))
+                        {
+                            Debug.LogWarning($"equipstats 파싱 실패 : int {token}");
+                            continue;
+                        }
+
+                        ApplyFlat(equipStat,key,v);
+                    }
+
+                    if(op == '*')
+                    {
+                        if(!float.TryParse(valStr, NumberStyles.Float, CultureInfo.InvariantCulture, out var v))
+                        {
+                            Debug.LogWarning($"equipstats 파싱 실패 : float {token}");
+                            continue;
+                        }
+
+                        ApplyMulti(equipStat,key,v);
+                    }
+                }
+            }
+            
+            var targetType = TargetType.Self;
+            if (!string.IsNullOrEmpty(cols[5]))
+            {
+                if(!Enum.TryParse<TargetType>(cols[5], out var t))
+                {
+                    Debug.LogWarning($"target 파싱 실패 : {cols[5]}(line:{line})");
+                    continue;
+                }
+                targetType = t;
+            }
+            
+            List<ItemEffect> effects = new();
+            if (!string.IsNullOrEmpty(cols[6]))
+            {
+                var itemeffects = cols[6].Split(';',StringSplitOptions.RemoveEmptyEntries);
+                foreach(var effect in itemeffects)
+                {
+                    var token = effect.Trim();
+
+                    int first = token.IndexOf(':');
+                    if(first < 0)
+                    {
+                        Debug.LogWarning($"itemeffect 형식이 잘못됨 {token}");
+                        continue;
+                    }
+                    string id = token[..first].Trim().ToLowerInvariant();
+                    
+                    int second = token.IndexOf(':',first+1);
+                    string v = "0";
+                    string d = "0";
+
+                    if(second > 0)
+                    {
+                        v = token[(first+1)..second].Trim();
+                        d = token[(second+1)..].Trim();
+                    }
+                    else
+                    {
+                        v = token[(first+1)..].Trim();
+                    }
+
+                    ItemEffect e = new ItemEffect
+                    {
+                        effectID = ItemEffectId(id),
+                        value = float.Parse(v),
+                        duration = int.Parse(d)
+                    };
+
+                    if (!effects.Any(f=>f.effectID == id))
+                    {
+                        effects.Add(e);
+                    }
+                }
+            }
+
+            int stack = 0;
+            if(int.TryParse(cols[7],out var s))
+            {
+                stack = s;
+            }
+
+            int cool = 0;
+            if(int.TryParse(cols[8],out var c))
+            {
+                cool = c;
+            }
+
+            ItemData data = new ItemData
+            {
+                itemID = cols[0],
+                itemType = type,
+                name = cols[2],
+                isStackable = type == ItemType.Consumable,
+                equipmentStats = equipStat,
+                passiveID = cols[4],
+                target = targetType,
+                itemEffect = effects,
+                maxStack = stack,
+                cooltime = cool
+            };
+
+            if (!saveFile.ContainsKey(data.itemID))
+            {
+                saveFile.Add(data.itemID,data);
+            }
+        }
+    }
+
+    private void ApplyFlat(EquipmentStats s, string key, int v)
+    {
+        switch (key)
+        {
+            case "hp" :
+                s.flatHP += v;
+                break;
+
+            case "mp" :
+                s.flatMP += v;
+                break;
+
+            case "atk" :
+                s.flatAtk += v;
+                break;
+
+            case "def" : 
+                s.flatDef += v;
+                break;
+
+            case "spd" : 
+                s.flatSpeed += v;
+                break;
+            
+            default :
+                Debug.LogWarning($"잘못된 키 : {key}");
+                break;
+        }
+    }
+
+    private void ApplyMulti(EquipmentStats s, string key, float v)
+    {
+        switch (key)
+        {
+            case "hp" :
+                s.mulHP *= v;
+                break;
+            
+            case "mp" :
+                s.mulMP *= v;
+                break;
+            
+            case "atk" :
+                s.mulAtk *= v;
+                break;
+            
+            case "def" :
+                s.mulDef *= v;
+                break;
+            
+            case "cri" :
+                s.mulCri *= v;
+                break;
+            
+            default :
+                Debug.LogWarning($"잘못된 키 : {key}");
+                break;
+        }
+    }
+
+    private string ItemEffectId(string id)
+    {
+        switch (id)
+        {
+            case "heal":
+                return "EF_HEAL";
+            
+            case "clean":
+                return "EF_CL";
+            
+            default:
+                return "error";
+        }
+    }
+
+    public void ReadPassiveCSV(Dictionary<string, ItemPassive> saveFile)
+    {
+        if(passiveCSV == null)
+        {
+            Debug.LogError("passiveCSV가 비어있습니다.");
+            return;
+        }
+
+        string []lines = passiveCSV.text.Split(',');
+        if(lines.Length <= 1)
+        {
+            Debug.LogWarning("csv 파일에 데이터가 없음");
+            return;
+        }
+
+        for(int i = 1; i < lines.Length; i++)
+        {
+            string line = lines[i].Trim();
+
+            if(string.IsNullOrEmpty(line)) continue;
+
+            string []cols = line.Split(',');
+
+            if(cols.Length < 4)
+            {
+                Debug.LogWarning($"passive 컬럼 개수 부족 (line : {line})");
+                continue;
+            }
+
+            for(int j = 0; j < cols.Length; j++)
+            {
+                cols[j] = cols[j].Trim().Trim('"');
+            }
+
+            if(!Enum.TryParse<BattleState>(cols[1],out var pstiming))
+            {
+                Debug.LogWarning($"battlestate 파싱 실패 : {cols[1]} (line:{line})");
+                continue;
+            }
+
+            string condition = "empty";
+            float condition_value = -1;
+
+            if (!string.IsNullOrEmpty(cols[2]))
+            {
+                var token = cols[2].Trim();
+
+                int index = token.IndexOf(':');
+
+                condition = token[..index].Trim().ToLowerInvariant();
+                condition_value = float.Parse(token[(index+1)..].Trim());
+            }
+
+            StatusType stat = StatusType.None;
+            float value = -1;
+
+            if (!string.IsNullOrEmpty(cols[3]))
+            {
+                var token = cols[3].Trim();
+
+                int index = token.IndexOf(':');
+
+                string stat_text = token[..index].Trim().ToLowerInvariant();
+                //if(!Enum.TryParse<)
+            }
+
+            ItemPassive data = new ItemPassive
+            {
+                passiveID = cols[0],
+                timing = pstiming,
+                condition = condition,
+                condition_value = condition_value,
+                stat = stat,
+                value = value
+            };
+
+            if (!saveFile.ContainsKey(data.passiveID))
+            {
+                saveFile.Add(data.passiveID, data);
             }
         }
     }

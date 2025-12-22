@@ -1,0 +1,3 @@
+passive_id,timing,condition,effect
+PS_HP_HIGH,RoundStart,HP_RATE >= 0.5,STAT:ATK:0.2
+PS_HP_LOW,RoundStart,HP_RATE <= 0.25,STAT:DEF:0.2

@@ -383,6 +383,20 @@ public class BattleUnit
             case EffectType.Freeze:
             case EffectType.Stun:
                 break;
+            
+            case EffectType.Heal:
+                {
+                    int value = e.damage;
+                    currentHP = Mathf.Min(currentHP + value, maxHP);
+                    break;
+                }
+                
+            case EffectType.RecovoryMP:
+                {
+                    int value = e.damage;
+                    currentMP = Mathf.Min(currentMP + value, maxMP);
+                    break;
+                }
         }
     }
 

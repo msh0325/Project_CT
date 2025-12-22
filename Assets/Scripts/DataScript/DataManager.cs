@@ -14,6 +14,7 @@ public class DataManager : MonoBehaviour
     public Dictionary<string, StageData> stageDatas = new();
     public Dictionary<string, List<WaveData>> waveDatas = new();
     public Dictionary<string, SupportData> supportData = new();
+    public Dictionary<string, ItemData> itemData = new();
 
     void Awake()
     {
@@ -44,6 +45,10 @@ public class DataManager : MonoBehaviour
         // waveData 불러오기
         csvReader.ReadWaveCSV(waveDatas);
 
+        // supportData 불러오기
         csvReader.ReadSupportCSV(supportData);
+
+        // itemData 불러오기
+        csvReader.ReadItemCSV(itemData);
     }
 }
