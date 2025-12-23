@@ -41,7 +41,7 @@ public class CSVReader : MonoBehaviour
 
             string[] cols = line.Split(',');
 
-            if(cols.Length < 9)
+            if(cols.Length < 10)
             {
                 Debug.LogWarning("CharacterData 컬럼 개수 부족");
                 continue;
@@ -63,7 +63,8 @@ public class CSVReader : MonoBehaviour
                 mp = int.Parse(cols[5]),
                 attack = int.Parse(cols[6]),
                 defense = int.Parse(cols[7]),
-                skillID = cols[8].Split('/',StringSplitOptions.RemoveEmptyEntries)
+                critical = float.Parse(cols[8]),
+                skillID = cols[9].Split('/',StringSplitOptions.RemoveEmptyEntries)
             };
 
             if(!saveFile.ContainsKey(stat.characterID))
@@ -553,12 +554,23 @@ public class CSVReader : MonoBehaviour
                     
                     int second = token.IndexOf(':',first+1);
                     string v = "0";
+                    string m = "0";
                     string d = "0";
 
                     if(second > 0)
                     {
-                        v = token[(first+1)..second].Trim();
-                        d = token[(second+1)..].Trim();
+                        int third = token.IndexOf(':',second+1);
+                        if(third > 0)
+                        {
+                            v = token[(first+1)..second].Trim();
+                            m = token[(second+1)..third].Trim();
+                            d = token[(third+1)..].Trim();
+                        }
+                        else
+                        {
+                            v = token[(first+1)..second].Trim();
+                            d = token[(second+1)..].Trim();
+                        }
                     }
                     else
                     {
@@ -568,7 +580,8 @@ public class CSVReader : MonoBehaviour
                     ItemEffect e = new ItemEffect
                     {
                         effectID = ItemEffectId(id),
-                        value = float.Parse(v),
+                        value = int.Parse(v),
+                        mul = float.Parse(m),
                         duration = int.Parse(d)
                     };
 
@@ -676,6 +689,12 @@ public class CSVReader : MonoBehaviour
     {
         switch (id)
         {
+            case "poison":
+                return "EF_POISON";
+            
+            case "burn":
+                return "EF_05";
+
             case "heal":
                 return "EF_HEAL";
             
@@ -687,7 +706,7 @@ public class CSVReader : MonoBehaviour
         }
     }
 
-    public void ReadPassiveCSV(Dictionary<string, ItemPassive> saveFile)
+    public void ReadPassiveCSV(Dictionary<string, Passive> saveFile)
     {
         if(passiveCSV == null)
         {
@@ -695,7 +714,7 @@ public class CSVReader : MonoBehaviour
             return;
         }
 
-        string []lines = passiveCSV.text.Split(',');
+        string []lines = passiveCSV.text.Split('\n');
         if(lines.Length <= 1)
         {
             Debug.LogWarning("csv 파일에 데이터가 없음");
@@ -728,16 +747,45 @@ public class CSVReader : MonoBehaviour
             }
 
             string condition = "empty";
+            CompareOP op = CompareOP.None;
             float condition_value = -1;
 
             if (!string.IsNullOrEmpty(cols[2]))
             {
                 var token = cols[2].Trim();
+                int first = -1;
+                string []ops = {">=","<=","==","!=",">","<"};
+                string op_text = null;
 
-                int index = token.IndexOf(':');
+                foreach(var o in ops)
+                {
+                    first = token.IndexOf(o, StringComparison.Ordinal);
+                    if(first >= 0)
+                    {
+                        op_text = o;
+                        break;
+                    }
+                }
 
-                condition = token[..index].Trim().ToLowerInvariant();
-                condition_value = float.Parse(token[(index+1)..].Trim());
+                if(first < 0)
+                {
+                    Debug.LogWarning($"연산자 파싱 실패 line:{line}");
+                    continue;
+                }
+                
+                condition = token[..first].Trim().ToLowerInvariant();
+                op = op_text switch
+                {
+                    ">=" => CompareOP.GE,
+                    "<=" => CompareOP.LE,
+                    "==" => CompareOP.EQ,
+                    "!=" => CompareOP.NE,
+                    ">" => CompareOP.GT,
+                    "<" => CompareOP.LT,
+                    _ => CompareOP.None
+                };
+                int op_len = op_text.Length;
+                condition_value = float.Parse(token[(first+op_len+1)..].Trim());
             }
 
             StatusType stat = StatusType.None;
@@ -750,10 +798,11 @@ public class CSVReader : MonoBehaviour
                 int index = token.IndexOf(':');
 
                 string stat_text = token[..index].Trim().ToLowerInvariant();
-                //if(!Enum.TryParse<)
+                stat = StringToStat(stat_text);
+                value = float.Parse(token[(index+1)..]);
             }
 
-            ItemPassive data = new ItemPassive
+            Passive data = new Passive
             {
                 passiveID = cols[0],
                 timing = pstiming,
@@ -768,5 +817,16 @@ public class CSVReader : MonoBehaviour
                 saveFile.Add(data.passiveID, data);
             }
         }
+    }
+
+    private StatusType StringToStat(string s)
+    {
+        return s switch
+        {
+            "atk" => StatusType.Attack,
+            "def" => StatusType.Defense,
+            "spd" => StatusType.Speed,
+            _ => StatusType.None,
+        };
     }
 }

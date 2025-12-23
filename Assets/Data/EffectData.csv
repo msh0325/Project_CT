@@ -1,8 +1,10 @@
 Effect_ID,Type,Timing,ApplyTIming,StackType,duration,damage,maxStack,Stat_Multiple,StatusType
 EF_01,Bleed,TurnStart,AfterTick,AddDamage,3,5,30,0,None
-EF_02,Poison,TurnEnd,AfterTick,AddDamage,4,3,30,0.08,None
+EF_POISON,Poison,TurnEnd,AfterTick,AddDamage,4,3,30,0.08,None
 EF_03,StatBuff,RoundStart,AfterTick,ResetDuration,2,1,1,0,Speed
 EF_04,StatDebuff,RoundStart,Immediate,ResetDuration,3,1,1,0.15,Defense
 EF_05,Burn,TurnStart,AfterTick,AddDamage,3,3,10,0.1,Defense
 EF_06,StatBuff,RoundStart,Immediate,ResetDuration,3,1,1,0.15,Defense
-EF_HEAL,Heal,TurnStart,Immediate,None,0,15,1,0,None
+EF_HEAL,Heal,TurnEnd,Immediate,None,0,15,1,0,None
+EF_DEFEND_BASIC,DamageReduce,TurnStart,Immediate,ResetDuration,1,0,1,0.5,None
+EF_DEFEND_01,Guard,TurnStart,Immediate,ResetDuration,-1,0,2,0,None

@@ -52,6 +52,8 @@ public class BattleUnit
     public Dictionary<string, SkillData> skills = new();
     public Dictionary<string,int> cooldowns = new();
 
+    public EffectData defend = new();
+
     const int BaseMainAction = 1;
     const int BaseSubAction = 2;
     public int mainActionCount;
@@ -92,6 +94,12 @@ public class BattleUnit
         leftMainAction = mainActionCount;
         leftSubAction = subActionCount;
         row = rowType;
+        //EF_DEFEND_01
+        string defid = "EF_DEFEND_BASIC";
+        if(DataManager.instance.effectDatas.TryGetValue(defid,out var def))
+        {
+            defend = def;
+        }
     }
 
     public void InitSkills(Dictionary<string, SkillData> skillDB)
@@ -198,6 +206,7 @@ public class BattleUnit
         float cri_rate = UnityEngine.Random.Range(0,100f) < critical? 1.5f:1.0f;
         float rndMul = UnityEngine.Random.Range(1,1.2f);
         int realDMG = Mathf.RoundToInt(attack * (attack/ (float)(attack+targetDEF)) * rndMul * cri_rate);
+        realDMG = target.RealDamage(realDMG);
 
         target.currentHP = Mathf.Max(target.currentHP-realDMG, 0);
         currentMP = Mathf.Min(currentMP + 10, baseMaxMP);
@@ -222,6 +231,7 @@ public class BattleUnit
         {
             case SkillType.Damage:
                 int realDMG = Mathf.RoundToInt(dmg * (attack / (float)(attack+target.defense)));
+                realDMG = target.RealDamage(realDMG);
                 target.currentHP = Mathf.Max(target.currentHP - realDMG, 0);
                 Debug.Log($"{name}이 {target.name}를 향해 공격. 데미지 : {dmg}, 실제 데미지 : {realDMG}");
                 Debug.Log($"{target.name}의 남은 HP {target.currentHP}");
@@ -236,8 +246,8 @@ public class BattleUnit
                 break;
 
             case SkillType.Heal:
-                target.currentHP = Mathf.Min(target.currentHP + dmg, target.baseMaxHP);
-                Debug.Log($"{name}이 {target.name}을 힐 : {dmg}");
+                //target.currentHP = Mathf.Min(target.currentHP + dmg, target.baseMaxHP);
+                //Debug.Log($"{name}이 {target.name}을 힐 : {dmg}");
                 break;
         }
 
@@ -245,7 +255,32 @@ public class BattleUnit
         {
             EffectData effectData = DataManager.instance.effectDatas[id];
             target.ApplyEffect(effectData);
-        }        
+        }
+    }
+
+    public int RealDamage(int dmg)
+    {
+        var guard = activeEffects.FirstOrDefault(e=>e.data.type == EffectType.Guard);
+        if(guard != null)
+        {
+            guard.token--;
+            Debug.Log($"{name}의 피해무효화 발동. 남은 횟수 {guard.token}");
+            if(guard.token <= 0)
+            {
+                activeEffects.Remove(guard);
+            }
+            return 0;
+        }
+
+        float mul = 1f;
+        foreach(var e in activeEffects)
+        {
+            if(e.data.type != EffectType.DamageReduce) continue;
+            mul = Mathf.Min(mul, e.data.statmul);
+        }
+        dmg = Mathf.RoundToInt(dmg * mul);
+
+        return dmg;
     }
 
     private void StartCoolDown(SkillData skill)
@@ -275,23 +310,44 @@ public class BattleUnit
         return -1;
     }
 
+    private HashSet<EffectType> immediateType = new() {EffectType.Clean,EffectType.Heal,EffectType.RecovoryMP};
+
     public void ApplyEffect(EffectData effect)
     {
-        var id = activeEffects.FirstOrDefault(e=>e.data.effectID == effect.effectID);        
+        var id = activeEffects.FirstOrDefault(e=>e.data.effectID == effect.effectID);
         bool state_effect = effect.status != StatusType.None;
+        // 나중에 토큰인지 아닌지 구분방법 필요할듯
+        bool isToken = effect.type == EffectType.Guard;
+
+        if(immediateType.Contains(effect.type))
+        {
+            ActiveEffect e = new ActiveEffect
+            {
+                data = effect,
+                damage = effect.damage,
+                statMul = effect.statmul,
+                duration = 0
+            };
+
+            TakeEffect(e);
+            return;
+        }
 
         if(id == null)
         {
-            activeEffects.Add(new ActiveEffect
+            ActiveEffect e = new ActiveEffect
             {
                 data = effect,
                 damage = effect.damage,
                 statMul = effect.statmul,
                 duration = effect.duration,
-                statEnable = effect.applyTiming == ApplyTiming.Immediate
-            });
+                statEnable = effect.applyTiming == ApplyTiming.Immediate,
+                token = isToken? 1:0
+            };
 
-            if(state_effect && effect.applyTiming == ApplyTiming.Immediate)
+            activeEffects.Add(e);
+
+            if(state_effect && e.statEnable)
             {
                 CalcBuff();
             }
@@ -311,7 +367,71 @@ public class BattleUnit
                 if(id.damage < effect.maxDamage)
                 {
                     id.damage = Mathf.Min(id.damage + Mathf.RoundToInt(effect.damage / 2),effect.maxDamage);
-                    id.duration++;
+                    id.duration += Mathf.RoundToInt(effect.duration / 2);
+                }
+                break;
+        }
+    }
+
+    public void ApplyEffectOverride(EffectData baseData, int value,float multiflier, int duration)
+    {
+        if (immediateType.Contains(baseData.type))
+        {
+            ActiveEffect e = new ActiveEffect
+            {
+                data = baseData,
+                damage = value,
+                statMul = multiflier,
+                duration = 0
+            };
+
+            TakeEffect(e);
+            return;
+        }
+
+        var id = activeEffects.FirstOrDefault(e=>e.data.effectID == baseData.effectID);
+        bool state_effect = baseData.status != StatusType.None;
+        // 나중에 토큰인지 아닌지 구분방법 필요할듯
+        bool isToken = baseData.type == EffectType.Guard;
+
+        int dmg = value;
+        float statmul = multiflier;
+        int dur = duration;
+        if(id == null)
+        {
+            ActiveEffect effect = new ActiveEffect
+            {
+                data = baseData,
+                damage = dmg,
+                statMul = statmul,
+                duration = dur,
+                statEnable = baseData.applyTiming == ApplyTiming.Immediate,
+                token = isToken? 1:0
+            };
+            
+            activeEffects.Add(effect);
+
+            if(state_effect && effect.statEnable)
+            {
+                CalcBuff();
+            }
+            return;
+        }
+        
+        switch (id.data.stack)
+        {
+            case StackType.None: 
+                break;
+
+            case StackType.ResetDuration:
+                id.duration = baseData.duration;
+                break;
+                
+            case StackType.AddDamage:
+                if(id.damage < baseData.maxDamage)
+                {
+                    id.damage = Mathf.Min(id.damage + Mathf.RoundToInt(dmg / 2),baseData.maxDamage);
+                    id.duration += Mathf.RoundToInt(duration / 2);
                 }
                 break;
         }
@@ -388,6 +508,7 @@ public class BattleUnit
                 {
                     int value = e.damage;
                     currentHP = Mathf.Min(currentHP + value, maxHP);
+                    Debug.Log($"{name} : {value} 힐");
                     break;
                 }
                 

@@ -47,19 +47,33 @@ public class EquipmentStats
 public class ItemEffect
 {
     public string effectID;
-    public float value;
+    public int value;
+    public float mul;
     public int duration;
 }
 
+public enum CompareOP
+{
+    GE, LE, EQ, NE, GT, LT, None
+}
+
 [Serializable]
-public class ItemPassive
+public class Passive
 {
     public string passiveID;
     public BattleState timing;
 
     public string condition;
+    public CompareOP op;
     public float condition_value;
 
     public StatusType stat;
     public float value;
+}
+
+[Serializable]
+public class ItemStack
+{
+    public string itemID;
+    public int stack;
 }

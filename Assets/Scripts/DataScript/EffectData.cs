@@ -27,6 +27,8 @@ public class ActiveEffect
     public float statMul;
     public int duration;
     public bool statEnable;
+
+    public int token; // 토큰형 effect. ex) 다음 피해 1회 무효화 / 다음 공격 피해 1회 증가
 }
 
 public enum StackType
@@ -46,9 +48,11 @@ public enum EffectType
     Freeze, // 다음 턴 속도 감소
     Burn, // 턴 시작시 데미지, 방어력 감소
     Stun, // 턴을 제일 마지막으로 미룸
-    Clean, // 상태이상 지우기
-    Heal, // 체력 회복
-    RecovoryMP // mp 회복
+    Clean, // 상태이상 지우기 (즉발)
+    Heal, // 체력 회복 (즉발)
+    RecovoryMP, // mp 회복 (즉발)
+    DamageReduce, // 받는 피해량 감소
+    Guard // 피해 무시(토큰)
 }
 
 public enum ApplyTiming
@@ -62,7 +66,8 @@ public enum StatusType
     None,
     Speed,
     Attack,
-    Defense
+    Defense,
+    DamageTaken // 받피감. defend에 사용됨
 }
 
 public enum CleanMode

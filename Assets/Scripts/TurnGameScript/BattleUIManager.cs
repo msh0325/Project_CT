@@ -50,7 +50,15 @@ public class BattleUIManager : MonoBehaviour
 
         itemBtn.onClick.AddListener(() =>
         {
-            gm.OnPlayerSelectCommand(TurnGameManager.BattleCommandType.Item);
+            var inventory = PlayerData.instance.itemBoxMap;
+            foreach(var i in inventory)
+            {
+                if(i.Value <= 0) continue;
+                if(DataManager.instance.itemData.TryGetValue(i.Key, out var item))
+                {
+                    gm.OnPlayerSelectCommand(TurnGameManager.BattleCommandType.Item,null,item);
+                }
+            }
         });
 
         supportBtn.onClick.AddListener(() =>

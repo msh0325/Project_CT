@@ -23,6 +23,7 @@ public class TurnGameManager : MonoBehaviour
     private GameObject[] enemyPrefabs = new GameObject[3];
     private BattleCommandType command;
     private SkillData selectSkill;
+    private ItemData selectItem;
     private BattleUnit selectedTarget;
     private string stageID;
     private List<BattleUnit> allies = new();
@@ -182,7 +183,7 @@ public class TurnGameManager : MonoBehaviour
                     target = allies.FirstOrDefault(u =>!u.isDead);
                     if(target != null)
                     {
-                        nowUnit.Attack(target);                    
+                        nowUnit.Attack(target); 
                     }
                     if (CheckBattleOver())
                     {
@@ -258,9 +259,10 @@ public class TurnGameManager : MonoBehaviour
             pcDataManager.rosterMap.TryGetValue(ally.characterID, out var bonus);
             pcDataManager.selectedPartyMap.TryGetValue(ally.characterID,out var party);
 
-            BattleUnit unit = new (baseStat, TeamType.Ally, ally.row, bonus, party);
-
-            unit.partyChar = ally;
+            BattleUnit unit = new(baseStat, TeamType.Ally, ally.row, bonus, party)
+            {
+                partyChar = ally
+            };
             allies.Add(unit);
             turnOrder.Add(unit);
 
@@ -483,20 +485,25 @@ public class TurnGameManager : MonoBehaviour
                         break;
                     
                     case TargetType.AllyAll:
-                        var targets = allies.Where(u=>!u.isDead);
-                        foreach(var t in targets)
                         {
-                            unit.TakeDamage(t,selectSkill,dmg);
+                            var targets = allies.Where(u=>!u.isDead);
+                            foreach(var t in targets)
+                            {
+                                unit.TakeDamage(t,selectSkill,dmg);
+                            }
+                            break;
                         }
-                        break;
                     
                     case TargetType.EnemyAll:
-                        var tar = enemies.Where(u=>!u.isDead);
-                        foreach(var t in tar)
                         {
-                            unit.TakeDamage(t,selectSkill,dmg);
+                            var targets = enemies.Where(u=>!u.isDead);
+                            foreach(var t in targets)
+                            {
+                                unit.TakeDamage(t,selectSkill,dmg);
+                            }
+                            break;
                         }
-                        break;
+                        
 
                 }
                 unit.UseMainAction();
@@ -505,11 +512,47 @@ public class TurnGameManager : MonoBehaviour
 
             case BattleCommandType.Defend:
                 if(!unit.CanUseMainAction()) return true;
+                unit.ApplyEffect(unit.defend);
                 Debug.Log("use defend");
                 return true;
 
             case BattleCommandType.Item:
                 if(!unit.CanUseSubAction()) return false;
+                foreach(var itemEffect in selectItem.itemEffect)
+                {
+                    if(dataManager.effectDatas.TryGetValue(itemEffect.effectID, out var e))
+                    {
+                        switch (selectItem.target)
+                        {
+                            case TargetType.EnemySingle:
+                            case TargetType.AllySingle:
+                            case TargetType.Self:
+                                target.ApplyEffectOverride(e,itemEffect.value,itemEffect.mul,itemEffect.duration);
+                                break;
+
+                            case TargetType.EnemyAll:
+                                {
+                                    var targets = enemies.Where(u => !u.isDead);
+                                    foreach(var t in targets)
+                                    {
+                                        t.ApplyEffectOverride(e,itemEffect.value,itemEffect.mul,itemEffect.duration);
+                                    }
+                                    break;
+                                }
+                            
+                            case TargetType.AllyAll:
+                                {
+                                    var targets = allies.Where(u => !u.isDead);
+                                    foreach(var t in targets)
+                                    {
+                                        t.ApplyEffectOverride(e,itemEffect.value,itemEffect.mul,itemEffect.duration);
+                                    }
+                                    break;
+                                }
+                        }
+                    }
+                }
+                
                 Debug.Log("use item");
                 unit.UseSubAction();
                 return false;
@@ -593,7 +636,32 @@ public class TurnGameManager : MonoBehaviour
         return new List<BattleUnit>{user};
     }
 
-    public void OnPlayerSelectCommand(BattleCommandType cmd, SkillData skill = null)
+    public List<BattleUnit> ItemRangeTarget(BattleUnit user, ItemData item)
+    {
+        List<BattleUnit> source = null;
+        bool isAllyteam = user.team == TeamType.Ally;
+
+        switch (item.target)
+        {
+            case TargetType.EnemySingle:
+            case TargetType.EnemyAll:
+                source =isAllyteam? enemies:allies;
+                break;
+            
+            case TargetType.AllySingle:
+            case TargetType.AllyAll:
+                source = isAllyteam? allies:enemies;
+                break;
+            
+            case TargetType.Self:
+                return new List<BattleUnit>{user};
+        }
+        var candidates = source.Where(u=>!u.isDead).ToList();
+        
+        return candidates;
+    }
+
+    public void OnPlayerSelectCommand(BattleCommandType cmd, SkillData skill = null, ItemData item = null)
     {
         if(!isPlayerChecked) return;
 
@@ -640,9 +708,15 @@ public class TurnGameManager : MonoBehaviour
             
             case BattleCommandType.Item:
                 {
-                    command = cmd;
-                    isPlayerChecked = false;
-                    selectSkill = skill;
+                    var candidates = ItemRangeTarget(currentUnit, item);
+                    uiManager.EnterTargetSelectMode(candidates, (target) =>
+                    {
+                        command = cmd;
+                        selectedTarget = target;
+                        selectSkill = skill;
+                        selectItem = item;
+                        isPlayerChecked = false;
+                    });
                 }
                 break;
             
