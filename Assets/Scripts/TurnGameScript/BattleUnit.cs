@@ -367,7 +367,7 @@ public class BattleUnit
                 if(id.damage < effect.maxDamage)
                 {
                     id.damage = Mathf.Min(id.damage + Mathf.RoundToInt(effect.damage / 2),effect.maxDamage);
-                    id.duration += Mathf.RoundToInt(effect.duration / 2);
+                    id.duration = Mathf.Min(id.duration + Mathf.RoundToInt(effect.duration / 2),effect.maxDuration);
                 }
                 break;
         }
@@ -431,7 +431,7 @@ public class BattleUnit
                 if(id.damage < baseData.maxDamage)
                 {
                     id.damage = Mathf.Min(id.damage + Mathf.RoundToInt(dmg / 2),baseData.maxDamage);
-                    id.duration += Mathf.RoundToInt(duration / 2);
+                    id.duration = Mathf.Min(id.duration + Mathf.RoundToInt(duration / 2), baseData.maxDuration);
                 }
                 break;
         }

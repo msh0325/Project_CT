@@ -12,6 +12,7 @@ public class EffectData
     public int duration; // 상태이상 지속시간
     public int damage; // 상태이상 데미지?
     public int maxDamage; // 상태이상 최대 스택 수 / 버프/디버프는 데미지로 고정?
+    public int maxDuration; // 상태이상 최대 지속시간
 
     public float statmul; // 버프/디버프 배율 값
     public StatusType status; // 버프/디버프 영향주는 스테이터스 / 상태이상은 None

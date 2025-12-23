@@ -183,7 +183,7 @@ public class CSVReader : MonoBehaviour
 
             string[] cols = line.Split(',');
 
-            if(cols.Length < 10)
+            if(cols.Length < 11)
             {
                 Debug.LogWarning("Effect 컬럼 개수 부족");
                 continue;
@@ -218,9 +218,9 @@ public class CSVReader : MonoBehaviour
                 continue;
             }
 
-            if(!Enum.TryParse<StatusType>(cols[9],out var statusType))
+            if(!Enum.TryParse<StatusType>(cols[10],out var statusType))
             {
-                Debug.LogWarning($"statustype 파싱 실패 : {cols[9]}(line:{line})");
+                Debug.LogWarning($"statustype 파싱 실패 : {cols[10]}(line:{line})");
                 continue;
             }
 
@@ -234,7 +234,8 @@ public class CSVReader : MonoBehaviour
                 duration = int.Parse(cols[5]),
                 damage = int.Parse(cols[6]),
                 maxDamage = int.Parse(cols[7]),
-                statmul = float.Parse(cols[8]),
+                maxDuration = int.Parse(cols[8]),
+                statmul = float.Parse(cols[9]),
                 status = statusType
             };
 
