@@ -67,8 +67,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Button
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: cb41b3d4f2ab2f04387e931f08af37d2, type: 2}
-  m_sharedMaterial: {fileID: -2239505184859032841, guid: cb41b3d4f2ab2f04387e931f08af37d2, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: c4d4f6347a88bcc488ecd19a612d48fd, type: 2}
+  m_sharedMaterial: {fileID: -8734322611423273262, guid: c4d4f6347a88bcc488ecd19a612d48fd, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -278,6 +278,7 @@ MonoBehaviour:
     bonusMP: 0
     bonusAttack: 0
     bonusDefense: 0
+    bonusCritical: 0
     bonusMainAction: 0
     bonusSubAction: 0
     learnedSkillID: []
@@ -293,7 +294,6 @@ MonoBehaviour:
   ghost: {fileID: 0}
   dropDragGhost: 0
   nowSlot: {fileID: 0}
-  isSelected: 0
   characterName: 
 --- !u!225 &3079406423556091123
 CanvasGroup:

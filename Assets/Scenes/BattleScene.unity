@@ -331,12 +331,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a88cc816f10cb3d46976c8c10dc58b73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dataManager: {fileID: 0}
+  ownedCharacters: []
   roster:
   - characterID: TEST_01
     bonusHP: 5
     bonusMP: 0
     bonusAttack: 0
     bonusDefense: 0
+    bonusCritical: 0
     bonusMainAction: 1
     bonusSubAction: 0
     learnedSkillID:
@@ -356,6 +359,7 @@ MonoBehaviour:
     bonusMP: 0
     bonusAttack: 0
     bonusDefense: 0
+    bonusCritical: 0
     bonusMainAction: 0
     bonusSubAction: 1
     learnedSkillID:
@@ -386,7 +390,17 @@ MonoBehaviour:
     - TEST_SK03
     - TEST_SK04
     - TEST_SK06
+  ownedSupports: []
+  supportRoster: []
+  selectedSupport:
+    supportID: 
+    name: 
+    supportSkillID: 
+    attack: 0
+    cast: 0
   nowSelectStageID: TEST_ST01
+  itemBox: []
+  passives: []
 --- !u!4 &421775849
 Transform:
   m_ObjectHideFlags: 0
@@ -582,8 +596,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: skill
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: c4d4f6347a88bcc488ecd19a612d48fd, type: 2}
+  m_sharedMaterial: {fileID: -8734322611423273262, guid: c4d4f6347a88bcc488ecd19a612d48fd, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -718,8 +732,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: defend
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: c4d4f6347a88bcc488ecd19a612d48fd, type: 2}
+  m_sharedMaterial: {fileID: -8734322611423273262, guid: c4d4f6347a88bcc488ecd19a612d48fd, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1441,8 +1455,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: support
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: c4d4f6347a88bcc488ecd19a612d48fd, type: 2}
+  m_sharedMaterial: {fileID: -8734322611423273262, guid: c4d4f6347a88bcc488ecd19a612d48fd, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1577,8 +1591,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: attack
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: c4d4f6347a88bcc488ecd19a612d48fd, type: 2}
+  m_sharedMaterial: {fileID: -8734322611423273262, guid: c4d4f6347a88bcc488ecd19a612d48fd, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1767,6 +1781,9 @@ MonoBehaviour:
   effectCSV: {fileID: 4900000, guid: d519b4dd1b270194ca4bead23468e681, type: 3}
   stageCSV: {fileID: 4900000, guid: 5be1c4abf724dd543ab9703f39614ca9, type: 3}
   waveCSV: {fileID: 4900000, guid: 5dd296ba41668254fa664c29d31ca65a, type: 3}
+  supportCSV: {fileID: 0}
+  itemCSV: {fileID: 0}
+  passiveCSV: {fileID: 0}
 --- !u!4 &1749973650
 Transform:
   m_ObjectHideFlags: 0
@@ -2251,8 +2268,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: item
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: c4d4f6347a88bcc488ecd19a612d48fd, type: 2}
+  m_sharedMaterial: {fileID: -8734322611423273262, guid: c4d4f6347a88bcc488ecd19a612d48fd, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
