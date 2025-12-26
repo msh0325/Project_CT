@@ -24,6 +24,7 @@ public class EffectData
 public class ActiveEffect
 {
     public EffectData data;
+    public string sourceTag;
     public int damage;
     public float statMul;
     public int duration;

@@ -8,4 +8,4 @@ TEST_SK06,테스트힐2,1.0,1.3,1,10,2,Heal,Self,Front/Middle/Back,EF_HEAL
 TEST_SK07,테스트화상,0.8,1.2,1.1,15,4,Damage,EnemySingle,Front,EF_05
 TEST_SK08,테스트버프1,1,1,1,10,2,Buff,AllyAll,Front/Middle/Back,EF_06
 TEST_SP01,액티브서포트,1.2,1.3,1,0,3,Damage,EnemyAll,Front/Middle/Back,
-TEST_SP02,패시브서포트,1,1,1.25,0,0,Buff,AllyAll,Front/Middle/Back,
+TEST_SP02,패시브서포트,1,1,1.25,0,0,Buff,AllyAll,Front/Middle/Back,EF_SUPPORT_01

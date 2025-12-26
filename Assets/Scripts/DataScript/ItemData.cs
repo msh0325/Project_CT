@@ -72,6 +72,14 @@ public class Passive
 }
 
 [Serializable]
+public class PassiveRuntime
+{
+    public Passive data;
+    public bool isActive;
+    public string tag;
+}
+
+[Serializable]
 public class ItemStack
 {
     public string itemID;

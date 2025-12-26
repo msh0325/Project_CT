@@ -26,8 +26,8 @@ public class BattleUnit
 
     public int currentHP;
     public int currentMP;
-    public int attack => Mathf.RoundToInt((baseAttack + attackBonus) * attack_mul);
-    public int defense => Mathf.RoundToInt((baseDefense + defenseBonus) * defense_mul);
+    public int attack => Mathf.RoundToInt(baseAttack + attackBonus);
+    public int defense => Mathf.RoundToInt(baseDefense + defenseBonus);
     public float critical => Mathf.Clamp(baseCritical + criticalBonus,0,0.9f); // 크리티컬 확률 90퍼까지
     public int maxHP => baseMaxHP;
     public int maxMP => baseMaxMP;
@@ -36,9 +36,7 @@ public class BattleUnit
     public int currentSpeed;
 
     private int attackBonus;
-    public float attack_mul = 1.0f;
     private int defenseBonus;
-    public float defense_mul = 1.0f;
     public float criticalBonus;
     private int bonusSpeed_min;
     private int bonusSpeed_max;
@@ -51,6 +49,7 @@ public class BattleUnit
 
     public Dictionary<string, SkillData> skills = new();
     public Dictionary<string,int> cooldowns = new();
+    public List<PassiveRuntime> passives = new();
 
     public EffectData defend = new();
 
@@ -197,19 +196,42 @@ public class BattleUnit
     {
         leftSubAction--;
     }
-    
+
     public void Attack(BattleUnit target)
     {
-        int targetDEF = target.defense;
-        // 데미지 공식 다른 버전 : 
-        // attack * skill.multiplier(없으면 생략) * (attack/(attack + targetdef)) * randMultiflier
-        float cri_rate = UnityEngine.Random.Range(0,100f) < critical? 1.5f:1.0f;
-        float rndMul = UnityEngine.Random.Range(1,1.2f);
-        int realDMG = Mathf.RoundToInt(attack * (attack/ (float)(attack+targetDEF)) * rndMul * cri_rate);
-        realDMG = target.RealDamage(realDMG);
+        float criMul = UnityEngine.Random.Range(0,100f) < critical ? 1.5f : 1.0f;
+        float rndMul = UnityEngine.Random.Range(1f,1.2f);
 
-        target.currentHP = Mathf.Max(target.currentHP-realDMG, 0);
+        float power = attack * rndMul * criMul;
+        int realDMG = CalcRealDamage(power, target);
+
+        ApplyDirectDamage(target, realDMG);
         currentMP = Mathf.Min(currentMP + 10, baseMaxMP);
+    }
+
+    public int CalcRealDamage(float power, BattleUnit target)
+    {
+        float ratio = attack / (float)(attack + target.defense);
+        int real = Mathf.RoundToInt(power * ratio);
+        return Mathf.Max(real, 0);
+    }
+
+    public void ApplyDirectDamage(BattleUnit target, int dmg)
+    {
+        DamagePipeline.Apply(new DamageEvent
+        {
+            source = this,
+            target = target,
+            amount = dmg,
+            kind = DamageKind.Direct,
+            allowDamageReduction = true
+        });
+    }
+
+    public void ApplyHeal(int amount)
+    {
+        if(isDead) return;
+        currentHP = Mathf.Min(currentHP + Mathf.Max(amount, 0), maxHP);
     }
 
     public void ConsumeSkillCost(SkillData skill)
@@ -218,22 +240,24 @@ public class BattleUnit
         StartCoolDown(skill);
     }
 
-    public int CalcSkillRealDamage(SkillData skill)
+    public float CalcSkillRealDamage(SkillData skill)
     {
-        float randomBonus = UnityEngine.Random.Range(skill.random_min,skill.random_max);
-        float dmg = attack * skill.multiplier * randomBonus;
-        return Mathf.RoundToInt(dmg);
+        float criMul = UnityEngine.Random.Range(0,100f) < critical ? 1.5f : 1.0f;
+        float rndMul = UnityEngine.Random.Range(skill.random_min, skill.random_max);
+
+        float power = attack * criMul * rndMul * skill.multiplier;
+        return power;
     }
 
-    public void TakeDamage(BattleUnit target,SkillData skill, int dmg)
+    public void TakeDamage(BattleUnit target,SkillData skill, float power)
     {
         switch (skill.skillType)
         {
             case SkillType.Damage:
-                int realDMG = Mathf.RoundToInt(dmg * (attack / (float)(attack+target.defense)));
-                realDMG = target.RealDamage(realDMG);
-                target.currentHP = Mathf.Max(target.currentHP - realDMG, 0);
-                Debug.Log($"{name}이 {target.name}를 향해 공격. 데미지 : {dmg}, 실제 데미지 : {realDMG}");
+                int realDMG = CalcRealDamage(power, target);
+                
+                ApplyDirectDamage(target, realDMG);
+                Debug.Log($"{name}이 {target.name}를 향해 공격. 데미지 : {realDMG}");
                 Debug.Log($"{target.name}의 남은 HP {target.currentHP}");
                 break;
 
@@ -246,41 +270,51 @@ public class BattleUnit
                 break;
 
             case SkillType.Heal:
-                //target.currentHP = Mathf.Min(target.currentHP + dmg, target.baseMaxHP);
-                //Debug.Log($"{name}이 {target.name}을 힐 : {dmg}");
+                Debug.Log($"{name}이 {target.name}에게 힐");
                 break;
         }
 
         foreach(var id in skill.effectID)
         {
-            EffectData effectData = DataManager.instance.effectDatas[id];
-            target.ApplyEffect(effectData);
+            if(!DataManager.instance.effectDatas.TryGetValue(id, out var effectData))
+            {
+                Debug.LogWarning($"effectdatas에 {id} 없음");
+                continue;
+            }
+
+            EffectPipeline.EffectPacket ep = new()
+            {
+                baseData = effectData,
+                source = this
+            };
+            EffectPipeline.ApplyEffectPacket(target, ep);
         }
     }
 
-    public int RealDamage(int dmg)
+    public bool CheckGuardToken()
     {
         var guard = activeEffects.FirstOrDefault(e=>e.data.type == EffectType.Guard);
-        if(guard != null)
+        if(guard == null) return false;
+        else
         {
             guard.token--;
-            Debug.Log($"{name}의 피해무효화 발동. 남은 횟수 {guard.token}");
             if(guard.token <= 0)
             {
                 activeEffects.Remove(guard);
             }
-            return 0;
+            return true;            
         }
+    }
 
+    public float CheckDamageReduce()
+    {
         float mul = 1f;
         foreach(var e in activeEffects)
         {
             if(e.data.type != EffectType.DamageReduce) continue;
             mul = Mathf.Min(mul, e.data.statmul);
         }
-        dmg = Mathf.RoundToInt(dmg * mul);
-
-        return dmg;
+        return mul;
     }
 
     private void StartCoolDown(SkillData skill)
@@ -344,7 +378,6 @@ public class BattleUnit
                 statEnable = effect.applyTiming == ApplyTiming.Immediate,
                 token = isToken? 1:0
             };
-
             activeEffects.Add(e);
 
             if(state_effect && e.statEnable)
@@ -377,15 +410,13 @@ public class BattleUnit
     {
         if (immediateType.Contains(baseData.type))
         {
-            ActiveEffect e = new ActiveEffect
+            TakeEffect(new ActiveEffect
             {
                 data = baseData,
                 damage = value,
                 statMul = multiflier,
                 duration = 0
-            };
-
-            TakeEffect(e);
+            });
             return;
         }
 
@@ -447,6 +478,8 @@ public class BattleUnit
 
             if(e.data.timing != timing) continue;
 
+            bool isInfinite = e.duration < 0;
+
             TakeEffect(e);
 
             if(!e.statEnable && e.data.applyTiming == ApplyTiming.AfterTick && e.data.status != StatusType.None)
@@ -454,16 +487,20 @@ public class BattleUnit
                 e.statEnable = true;
                 buffDirty = true;
             }
-            e.duration--;
 
-            if(e.duration <= 0)
+            if (!isInfinite)
             {
-                activeEffects.RemoveAt(i);
-                if(e.data.status != StatusType.None && e.statEnable)
+                e.duration--;
+
+                if(e.duration <= 0)
                 {
-                    buffDirty = true;                    
+                    activeEffects.RemoveAt(i);
+                    if(e.data.status != StatusType.None && e.statEnable)
+                    {
+                        buffDirty = true;                    
+                    }
+                    continue;
                 }
-                continue;
             }
         }
         // dirtyFlag 최적화 이용해 버프/디버프 갱신. 
@@ -479,7 +516,13 @@ public class BattleUnit
             case EffectType.Burn:
                 {
                     int baseDmg = e.damage;
-                    currentHP = Mathf.Max(currentHP - baseDmg,0);
+                    DamagePipeline.Apply(new DamageEvent
+                    {
+                        target = this,
+                        amount = baseDmg,
+                        kind = DamageKind.Dot,
+                        allowDamageReduction = false
+                    });
                     Debug.Log($"{name}가 {e.data.type} 데미지 입음 : {e.damage}, 남은 턴수 {e.duration}");
                     break;
                 }
@@ -487,7 +530,13 @@ public class BattleUnit
             case EffectType.Poison:
                 {
                     int baseDmg = e.damage;
-                    currentHP = Mathf.Max(currentHP - baseDmg,0);
+                    DamagePipeline.Apply(new DamageEvent
+                    {
+                        target = this,
+                        amount = baseDmg,
+                        kind = DamageKind.Dot,
+                        allowDamageReduction = false
+                    });
                     Debug.Log($"{name}가 {e.data.type} 데미지 입음 : {e.damage}, 남은 턴수 {e.duration}");
                     int mpDMG = Mathf.RoundToInt(maxMP * e.statMul);
                     currentMP = Mathf.Max(currentMP - mpDMG,0);
@@ -507,7 +556,7 @@ public class BattleUnit
             case EffectType.Heal:
                 {
                     int value = e.damage;
-                    currentHP = Mathf.Min(currentHP + value, maxHP);
+                    ApplyHeal(value);
                     Debug.Log($"{name} : {value} 힐");
                     break;
                 }
@@ -542,7 +591,7 @@ public class BattleUnit
 
                 case StatusType.Attack:
                     {
-                        int value = Mathf.RoundToInt(attack * mul);
+                        int value = Mathf.RoundToInt(baseAttack * mul);
                         if(e.data.type != EffectType.StatBuff) value = -value;
                         attackBonus += value;
                         Debug.Log($"{name}'s attack {value} 증/감 : {attack}");
@@ -551,7 +600,7 @@ public class BattleUnit
 
                 case StatusType.Defense:
                     {
-                        int value = Mathf.RoundToInt(defense * mul);
+                        int value = Mathf.RoundToInt(baseDefense * mul);
                         if(e.data.type != EffectType.StatBuff) value = -value;
                         defenseBonus += value;
                         Debug.Log($"{name}'s defense {value} 증/감 : {defense}");

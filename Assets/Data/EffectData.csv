@@ -8,3 +8,5 @@ EF_06,StatBuff,RoundStart,Immediate,ResetDuration,3,1,1,1,0.15,Defense
 EF_HEAL,Heal,TurnEnd,Immediate,None,0,15,1,1,0,None
 EF_DEFEND_BASIC,DamageReduce,TurnStart,Immediate,ResetDuration,1,0,1,1,0.5,None
 EF_DEFEND_01,Guard,TurnStart,Immediate,ResetDuration,-1,0,2,0,0,None
+EF_SUPPORT_01,StatBuff,RoundStart,Immediate,None,-1,0,0,0,0.25,Attack
+EF_SUPPORT_TIMING,StatBuff,RoundStart,Immediate,None,-1,0,0,0,0.25,Defense

@@ -318,12 +318,25 @@ public class TurnGameManager : MonoBehaviour
             // 패시브 스킬 작동
             // 당장은 처음 시작할 때 적용하고 시작. 나중에 여러 서포트 스킬 만들 때, 특정 조건에만 적용된다던가
             // 특정 상황에만 적용되는 스킬이 있으면 수정 필요
-            var targets = allies.Where(u=>!u.isDead && skill.range.Contains(u.row));
-            foreach(var target in targets)
+            var ids = support.supportSkill.effectID;
+            foreach(var id in ids)
             {
-                Debug.Log($"{target.name}의 서포트 스킬 미적용 attack : {target.attack}");
-                target.attack_mul *= skill.multiplier;
-                Debug.Log($"{target.name}의 서포트 스킬 적용 attack : {target.attack}");
+                if(!dataManager.effectDatas.TryGetValue(id, out var effectData))
+                {
+                    Debug.Log($"effectdata에 {id} 없음");
+                    continue;
+                }
+                var targets = allies.Where(u=>!u.isDead && skill.range.Contains(u.row));
+                foreach(var target in targets)
+                {
+                    Debug.Log($"{target.name}의 서포트 스킬 미적용 attack : {target.attack}");
+                    //target.attack_mul *= skill.multiplier;
+                    EffectPipeline.ApplyEffectPacket(target,new EffectPipeline.EffectPacket
+                    {
+                        baseData = effectData,
+                    });
+                    Debug.Log($"{target.name}의 서포트 스킬 적용 attack : {target.attack}");
+                }
             }
         }
     }
@@ -474,14 +487,14 @@ public class TurnGameManager : MonoBehaviour
                 if(!unit.CanUseSkill(selectSkill.skillID)) return false;
 
                 unit.ConsumeSkillCost(selectSkill);
-                int dmg = unit.CalcSkillRealDamage(selectSkill);
+                float power = unit.CalcSkillRealDamage(selectSkill);
 
                 switch (selectSkill.targetType)
                 {
                     case TargetType.AllySingle:
                     case TargetType.EnemySingle:
                     case TargetType.Self:
-                        unit.TakeDamage(target,selectSkill,dmg);
+                        unit.TakeDamage(target,selectSkill,power);
                         break;
                     
                     case TargetType.AllyAll:
@@ -489,7 +502,7 @@ public class TurnGameManager : MonoBehaviour
                             var targets = allies.Where(u=>!u.isDead);
                             foreach(var t in targets)
                             {
-                                unit.TakeDamage(t,selectSkill,dmg);
+                                unit.TakeDamage(t,selectSkill,power);
                             }
                             break;
                         }
@@ -499,12 +512,10 @@ public class TurnGameManager : MonoBehaviour
                             var targets = enemies.Where(u=>!u.isDead);
                             foreach(var t in targets)
                             {
-                                unit.TakeDamage(t,selectSkill,dmg);
+                                unit.TakeDamage(t,selectSkill,power);
                             }
                             break;
                         }
-                        
-
                 }
                 unit.UseMainAction();
                 Debug.Log("use skill");
@@ -512,7 +523,13 @@ public class TurnGameManager : MonoBehaviour
 
             case BattleCommandType.Defend:
                 if(!unit.CanUseMainAction()) return true;
-                unit.ApplyEffect(unit.defend);
+                //unit.ApplyEffect(unit.defend);
+                EffectPipeline.ApplyEffectPacket(unit, new EffectPipeline.EffectPacket
+                {
+                    baseData = unit.defend,
+                    source = unit
+                });
+                unit.UseMainAction();
                 Debug.Log("use defend");
                 return true;
 
@@ -527,7 +544,15 @@ public class TurnGameManager : MonoBehaviour
                             case TargetType.EnemySingle:
                             case TargetType.AllySingle:
                             case TargetType.Self:
-                                target.ApplyEffectOverride(e,itemEffect.value,itemEffect.mul,itemEffect.duration);
+                                //target.ApplyEffectOverride(e,itemEffect.value,itemEffect.mul,itemEffect.duration);
+                                EffectPipeline.ApplyEffectPacket(target, new EffectPipeline.EffectPacket
+                                {
+                                    baseData = e,
+                                    value = itemEffect.value,
+                                    mul = itemEffect.mul,
+                                    duration = itemEffect.duration,
+                                    source = unit
+                                });
                                 break;
 
                             case TargetType.EnemyAll:
@@ -535,7 +560,15 @@ public class TurnGameManager : MonoBehaviour
                                     var targets = enemies.Where(u => !u.isDead);
                                     foreach(var t in targets)
                                     {
-                                        t.ApplyEffectOverride(e,itemEffect.value,itemEffect.mul,itemEffect.duration);
+                                        //t.ApplyEffectOverride(e,itemEffect.value,itemEffect.mul,itemEffect.duration);
+                                        EffectPipeline.ApplyEffectPacket(t, new EffectPipeline.EffectPacket
+                                        {
+                                            baseData = e,
+                                            value = itemEffect.value,
+                                            mul = itemEffect.mul,
+                                            duration = itemEffect.duration,
+                                            source = unit
+                                        });
                                     }
                                     break;
                                 }
@@ -545,7 +578,15 @@ public class TurnGameManager : MonoBehaviour
                                     var targets = allies.Where(u => !u.isDead);
                                     foreach(var t in targets)
                                     {
-                                        t.ApplyEffectOverride(e,itemEffect.value,itemEffect.mul,itemEffect.duration);
+                                        //t.ApplyEffectOverride(e,itemEffect.value,itemEffect.mul,itemEffect.duration);
+                                        EffectPipeline.ApplyEffectPacket(t,new EffectPipeline.EffectPacket
+                                        {
+                                            baseData = e,
+                                            value = itemEffect.value,
+                                            mul = itemEffect.mul,
+                                            duration = itemEffect.duration,
+                                            source = unit
+                                        });
                                     }
                                     break;
                                 }
