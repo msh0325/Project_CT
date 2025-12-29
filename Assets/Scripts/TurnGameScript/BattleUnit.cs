@@ -35,8 +35,8 @@ public class BattleUnit
     public int speed_max => baseSpeedMax + bonusSpeed_max;
     public int currentSpeed;
 
-    private int attackBonus;
-    private int defenseBonus;
+    [SerializeField] private int attackBonus;
+    [SerializeField] private int defenseBonus;
     public float criticalBonus;
     private int bonusSpeed_min;
     private int bonusSpeed_max;
@@ -282,12 +282,12 @@ public class BattleUnit
                 continue;
             }
 
-            EffectPipeline.EffectPacket ep = new()
+            EffectEvent ev = new()
             {
                 baseData = effectData,
                 source = this
             };
-            EffectPipeline.ApplyEffectPacket(target, ep);
+            EffectPipeline.ApplyEffectPacket(target, ev);
         }
     }
 
@@ -342,130 +342,6 @@ public class BattleUnit
             return cooltime;
         }
         return -1;
-    }
-
-    private HashSet<EffectType> immediateType = new() {EffectType.Clean,EffectType.Heal,EffectType.RecovoryMP};
-
-    public void ApplyEffect(EffectData effect)
-    {
-        var id = activeEffects.FirstOrDefault(e=>e.data.effectID == effect.effectID);
-        bool state_effect = effect.status != StatusType.None;
-        // 나중에 토큰인지 아닌지 구분방법 필요할듯
-        bool isToken = effect.type == EffectType.Guard;
-
-        if(immediateType.Contains(effect.type))
-        {
-            ActiveEffect e = new ActiveEffect
-            {
-                data = effect,
-                damage = effect.damage,
-                statMul = effect.statmul,
-                duration = 0
-            };
-
-            TakeEffect(e);
-            return;
-        }
-
-        if(id == null)
-        {
-            ActiveEffect e = new ActiveEffect
-            {
-                data = effect,
-                damage = effect.damage,
-                statMul = effect.statmul,
-                duration = effect.duration,
-                statEnable = effect.applyTiming == ApplyTiming.Immediate,
-                token = isToken? 1:0
-            };
-            activeEffects.Add(e);
-
-            if(state_effect && e.statEnable)
-            {
-                CalcBuff();
-            }
-            return;
-        }
-
-        switch (id.data.stack)
-        {
-            case StackType.None: 
-                break;
-
-            case StackType.ResetDuration:
-                id.duration = effect.duration;
-                break;
-                
-            case StackType.AddDamage:
-                if(id.damage < effect.maxDamage)
-                {
-                    id.damage = Mathf.Min(id.damage + Mathf.RoundToInt(effect.damage / 2),effect.maxDamage);
-                    id.duration = Mathf.Min(id.duration + Mathf.RoundToInt(effect.duration / 2),effect.maxDuration);
-                }
-                break;
-        }
-    }
-
-    public void ApplyEffectOverride(EffectData baseData, int value,float multiflier, int duration)
-    {
-        if (immediateType.Contains(baseData.type))
-        {
-            TakeEffect(new ActiveEffect
-            {
-                data = baseData,
-                damage = value,
-                statMul = multiflier,
-                duration = 0
-            });
-            return;
-        }
-
-        var id = activeEffects.FirstOrDefault(e=>e.data.effectID == baseData.effectID);
-        bool state_effect = baseData.status != StatusType.None;
-        // 나중에 토큰인지 아닌지 구분방법 필요할듯
-        bool isToken = baseData.type == EffectType.Guard;
-
-        int dmg = value;
-        float statmul = multiflier;
-        int dur = duration;
-        if(id == null)
-        {
-            ActiveEffect effect = new ActiveEffect
-            {
-                data = baseData,
-                damage = dmg,
-                statMul = statmul,
-                duration = dur,
-                statEnable = baseData.applyTiming == ApplyTiming.Immediate,
-                token = isToken? 1:0
-            };
-            
-            activeEffects.Add(effect);
-
-            if(state_effect && effect.statEnable)
-            {
-                CalcBuff();
-            }
-            return;
-        }
-        
-        switch (id.data.stack)
-        {
-            case StackType.None: 
-                break;
-
-            case StackType.ResetDuration:
-                id.duration = baseData.duration;
-                break;
-                
-            case StackType.AddDamage:
-                if(id.damage < baseData.maxDamage)
-                {
-                    id.damage = Mathf.Min(id.damage + Mathf.RoundToInt(dmg / 2),baseData.maxDamage);
-                    id.duration = Mathf.Min(id.duration + Mathf.RoundToInt(duration / 2), baseData.maxDuration);
-                }
-                break;
-        }
     }
 
     public void CheckEffect(BattleState timing)

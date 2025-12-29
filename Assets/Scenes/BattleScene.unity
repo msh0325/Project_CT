@@ -395,7 +395,8 @@ MonoBehaviour:
   selectedSupport:
     supportID: 
     name: 
-    supportSkillID: 
+    activeSkillID: 
+    passiveSkillID: 
     attack: 0
     cast: 0
   nowSelectStageID: TEST_ST01
@@ -1192,6 +1193,50 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1232492580
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1232492582}
+  - component: {fileID: 1232492581}
+  m_Layer: 0
+  m_Name: PassiveSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1232492581
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1232492580}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eed478183a0c42b49b1d4273481f806a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &1232492582
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1232492580}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 902.8242, y: 494.76895, z: 4.56084}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1355165276
 GameObject:
   m_ObjectHideFlags: 0
@@ -1380,6 +1425,36 @@ MonoBehaviour:
   - {fileID: 644610907}
   uiManager: {fileID: 898788348}
   isPlayerChecked: 0
+  support:
+    data:
+      supportID: 
+      name: 
+      activeSkillID: 
+      passiveSkillID: 
+      attack: 0
+      cast: 0
+    supportPassive:
+      passiveID: 
+      timing: 0
+      trigger: 0
+      condition: 
+      op: 0
+      condition_value: 0
+      stat: 0
+      value: 0
+    passiveRuntime:
+      data:
+        passiveID: 
+        timing: 0
+        trigger: 0
+        condition: 
+        op: 0
+        condition_value: 0
+        stat: 0
+        value: 0
+      isActive: 0
+    cooldown: 0
+  passiveSystem: {fileID: 1232492581}
   state: 0
 --- !u!4 &1548943616
 Transform:
@@ -2459,6 +2534,7 @@ SceneRoots:
   - {fileID: 1969651102}
   - {fileID: 1749973650}
   - {fileID: 1548943616}
+  - {fileID: 1232492582}
   - {fileID: 1036294622}
   - {fileID: 421775849}
   - {fileID: 1734193540}

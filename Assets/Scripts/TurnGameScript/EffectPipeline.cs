@@ -1,20 +1,17 @@
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-
+public struct EffectEvent
+{
+    public EffectData baseData;
+    public int value;
+    public float mul;
+    public int duration;
+    public BattleUnit source;
+}
 public static class EffectPipeline
 {
-    public struct EffectPacket
-    {
-        public EffectData baseData;
-        public int value;
-        public float mul;
-        public int duration;
-        public BattleUnit source;
-    }
-
-    public static void ApplyEffectPacket(BattleUnit target, EffectPacket p)
+    public static void ApplyEffectPacket(BattleUnit target, EffectEvent p)
     {
         if(target == null || target.isDead) return;
         if(p.baseData == null) return;

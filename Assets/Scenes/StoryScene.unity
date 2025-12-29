@@ -2398,11 +2398,14 @@ MonoBehaviour:
   ownedSupports:
   - TEST_SP01
   - TEST_SP02
+  - TEST_SP03
+  - TEST_SP04
   supportRoster: []
   selectedSupport:
     supportID: 
     name: 
-    supportSkillID: 
+    activeSkillID: 
+    passiveSkillID: 
     attack: 0
     cast: 0
   nowSelectStageID: TEST_ST01

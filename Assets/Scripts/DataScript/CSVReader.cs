@@ -402,7 +402,7 @@ public class CSVReader : MonoBehaviour
 
             string[] cols = line.Split(',');
 
-            if(cols.Length < 5)
+            if(cols.Length < 6)
             {
                 Debug.LogWarning($"support 컬럼 개수 부족(line : {line})");
                 continue;
@@ -413,9 +413,9 @@ public class CSVReader : MonoBehaviour
                 cols[j] = cols[j].Trim().Trim('"');
             }
 
-            if(!Enum.TryParse<CastType>(cols[4], out var castType))
+            if(!Enum.TryParse<CastType>(cols[5], out var castType))
             {
-                Debug.LogWarning($"casttype 파싱 실패 {cols[4]} (line:{line})");
+                Debug.LogWarning($"casttype 파싱 실패 {cols[5]} (line:{line})");
                 continue;
             }
 
@@ -423,8 +423,9 @@ public class CSVReader : MonoBehaviour
             {
                 supportID = cols[0],
                 name = cols[1],
-                supportSkillID = cols[2],
-                attack = int.Parse(cols[3]),
+                activeSkillID = cols[2],
+                passiveSkillID = cols[3],
+                attack = int.Parse(cols[4]),
                 cast = castType
             };
 
@@ -730,7 +731,7 @@ public class CSVReader : MonoBehaviour
 
             string []cols = line.Split(',');
 
-            if(cols.Length < 4)
+            if(cols.Length < 5)
             {
                 Debug.LogWarning($"passive 컬럼 개수 부족 (line : {line})");
                 continue;
@@ -747,13 +748,19 @@ public class CSVReader : MonoBehaviour
                 continue;
             }
 
+            if(!Enum.TryParse<PassiveTrigger>(cols[2],out var pstrigger))
+            {
+                Debug.LogWarning($"passivetrigger 파싱 실패 : {cols[2]} (line:{line})");
+                continue;
+            }
+
             string condition = "empty";
             CompareOP op = CompareOP.None;
             float condition_value = -1;
 
-            if (!string.IsNullOrEmpty(cols[2]))
+            if (!string.IsNullOrEmpty(cols[3]))
             {
-                var token = cols[2].Trim();
+                var token = cols[3].Trim();
                 int first = -1;
                 string []ops = {">=","<=","==","!=",">","<"};
                 string op_text = null;
@@ -792,9 +799,9 @@ public class CSVReader : MonoBehaviour
             StatusType stat = StatusType.None;
             float value = -1;
 
-            if (!string.IsNullOrEmpty(cols[3]))
+            if (!string.IsNullOrEmpty(cols[4]))
             {
-                var token = cols[3].Trim();
+                var token = cols[4].Trim();
 
                 int index = token.IndexOf(':');
 
@@ -807,6 +814,7 @@ public class CSVReader : MonoBehaviour
             {
                 passiveID = cols[0],
                 timing = pstiming,
+                trigger = pstrigger,
                 condition = condition,
                 condition_value = condition_value,
                 stat = stat,

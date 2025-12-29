@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 public enum ItemType // 장착템 / 소모템 구분
 {
@@ -50,33 +51,6 @@ public class ItemEffect
     public int value;
     public float mul;
     public int duration;
-}
-
-public enum CompareOP
-{
-    GE, LE, EQ, NE, GT, LT, None
-}
-
-[Serializable]
-public class Passive
-{
-    public string passiveID;
-    public BattleState timing;
-
-    public string condition;
-    public CompareOP op;
-    public float condition_value;
-
-    public StatusType stat;
-    public float value;
-}
-
-[Serializable]
-public class PassiveRuntime
-{
-    public Passive data;
-    public bool isActive;
-    public string tag;
 }
 
 [Serializable]

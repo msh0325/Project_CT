@@ -1,3 +1,5 @@
 passive_id,timing,condition,effect
-PS_HP_HIGH,RoundStart,HP_RATE>= 0.5,ATK:0.2
-PS_HP_LOW,RoundStart,HP_RATE<= 0.25,DEF:0.2
+PS_HP_HIGH,TurnStart,None,HP_RATE>= 0.5,ATK:0.2
+PS_HP_LOW,RoundStart,None,HP_RATE<= 0.25,DEF:0.2
+PS_DAMAGE_TAKEN,Idle,AfterDamageTaken,,ATK:0.15
+PS_ATTACK,Idle,AfterAction,,DEF:0.2

@@ -1,3 +1,5 @@
-SupportID,Name,SupportSkill,Attack,Cast
-TEST_SP01,테스트서포트1,TEST_SP01,15,Active
-TEST_SP02,테스트서포트2,TEST_SP02,20,Passive
+SupportID,Name,ActivetSkill,PassiveSkill,Attack,Cast
+TEST_SP01,액티브서포트,TEST_SP01,,15,Active
+TEST_SP02,패시브서포트,TEST_SP02,,20,Passive
+TEST_SP03,조건부서포트,,PS_DAMAGE_TAKEN,0,Passive
+TEST_SP04,조건부서포트_액션,,PS_ATTACK,0,Passive

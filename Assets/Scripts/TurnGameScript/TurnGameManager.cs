@@ -30,10 +30,11 @@ public class TurnGameManager : MonoBehaviour
     private List<BattleUnit> enemies = new();
     private List<BattleUnit> turnOrder = new();
     private List<WaveData> waves = new();
-    private SupportUnit support = new();
+    [SerializeField] private SupportUnit support = new();
 
     private DataManager dataManager;
     private PlayerData pcDataManager;
+    public PassiveSystem passiveSystem;
     
     private int nowWaveIndex = 0;
     private int currentTurnIndex = 0;
@@ -118,6 +119,13 @@ public class TurnGameManager : MonoBehaviour
             {
                 u.CheckEffect(state);
             }
+            if(support != null && support.supportPassive != null)
+            {
+                foreach(var u in allies.Where(u => !u.isDead))
+                {
+                    support.passiveRuntime.UpdatePassive(u,state);
+                }
+            }
 
             RollUnitSpeed();
             support?.TickCoolDown();
@@ -135,6 +143,7 @@ public class TurnGameManager : MonoBehaviour
                 }
                 // 3. turnOrder 순으로 캐릭터 턴 시작 (state = TurnStart)
                 state = BattleState.TurnStart;
+                if(nowUnit.team == TeamType.Ally && support != null) support.passiveRuntime.UpdatePassive(nowUnit,state);
                 // 턴 진행중 죽었으면 다음 순서
                 if(nowUnit.isDead) continue;                
                 // 4. 캐릭터 행동 대기. 플레이어의 주/부 행동 입력 or 적의 AI 입력 (state = RunTurn)
@@ -276,69 +285,11 @@ public class TurnGameManager : MonoBehaviour
         }
 
         SpawnEnemyUnit(nowWaveIndex);
+        DamagePipeline.Init(passiveSystem);
 
         // 서포트 캐릭터 불러오기
-        var sup = pcDataManager.selectedSupport;
-        if(sup == null || string.IsNullOrEmpty(sup.supportID))
-        {
-            support = null;
-            return;
-        }
-
-        if(!dataManager.supportData.TryGetValue(sup.supportID,out var supportData))
-        {
-            Debug.LogWarning($"supportdata에 supportid {sup.supportID}가 없음");
-            support = null;
-            return;
-        }
-
-        var skillid = sup.supportSkillID;
-
-        if (string.IsNullOrEmpty(skillid))
-        {
-            Debug.LogWarning($"supportdata에 skillid가 없음");
-            support = null;
-            return;
-        }
-
-        if(!dataManager.skillDatas.TryGetValue(skillid,out var skill))
-        {
-            Debug.LogWarning($"skilldatas에 skillid {skillid} 가 없음");
-            support = null;
-            return;
-        }
-        support = new SupportUnit
-        {
-            data = supportData,
-            supportSkill = skill
-        };
-
-        if(support.data.cast == CastType.Passive)
-        {
-            // 패시브 스킬 작동
-            // 당장은 처음 시작할 때 적용하고 시작. 나중에 여러 서포트 스킬 만들 때, 특정 조건에만 적용된다던가
-            // 특정 상황에만 적용되는 스킬이 있으면 수정 필요
-            var ids = support.supportSkill.effectID;
-            foreach(var id in ids)
-            {
-                if(!dataManager.effectDatas.TryGetValue(id, out var effectData))
-                {
-                    Debug.Log($"effectdata에 {id} 없음");
-                    continue;
-                }
-                var targets = allies.Where(u=>!u.isDead && skill.range.Contains(u.row));
-                foreach(var target in targets)
-                {
-                    Debug.Log($"{target.name}의 서포트 스킬 미적용 attack : {target.attack}");
-                    //target.attack_mul *= skill.multiplier;
-                    EffectPipeline.ApplyEffectPacket(target,new EffectPipeline.EffectPacket
-                    {
-                        baseData = effectData,
-                    });
-                    Debug.Log($"{target.name}의 서포트 스킬 적용 attack : {target.attack}");
-                }
-            }
-        }
+        support = SupportUnit.TryCreat(PlayerData.instance,dataManager);
+        support?.ApplySupportPassive(allies);
     }
 
     private void SetUpWaveBattleUnits(int waveIndex)
@@ -480,6 +431,7 @@ public class TurnGameManager : MonoBehaviour
                 if(!unit.CanUseMainAction()) return true;
                 if(target != null) unit.Attack(target);
                 unit.UseMainAction();
+                passiveSystem.NotifyTirgger(unit,PassiveTrigger.AfterAction);
                 return !unit.CanUseMainAction();
             
             case BattleCommandType.Skill:
@@ -523,8 +475,8 @@ public class TurnGameManager : MonoBehaviour
 
             case BattleCommandType.Defend:
                 if(!unit.CanUseMainAction()) return true;
-                //unit.ApplyEffect(unit.defend);
-                EffectPipeline.ApplyEffectPacket(unit, new EffectPipeline.EffectPacket
+                
+                EffectPipeline.ApplyEffectPacket(unit, new EffectEvent
                 {
                     baseData = unit.defend,
                     source = unit
@@ -544,8 +496,7 @@ public class TurnGameManager : MonoBehaviour
                             case TargetType.EnemySingle:
                             case TargetType.AllySingle:
                             case TargetType.Self:
-                                //target.ApplyEffectOverride(e,itemEffect.value,itemEffect.mul,itemEffect.duration);
-                                EffectPipeline.ApplyEffectPacket(target, new EffectPipeline.EffectPacket
+                                EffectPipeline.ApplyEffectPacket(target, new EffectEvent
                                 {
                                     baseData = e,
                                     value = itemEffect.value,
@@ -560,8 +511,7 @@ public class TurnGameManager : MonoBehaviour
                                     var targets = enemies.Where(u => !u.isDead);
                                     foreach(var t in targets)
                                     {
-                                        //t.ApplyEffectOverride(e,itemEffect.value,itemEffect.mul,itemEffect.duration);
-                                        EffectPipeline.ApplyEffectPacket(t, new EffectPipeline.EffectPacket
+                                        EffectPipeline.ApplyEffectPacket(t, new EffectEvent
                                         {
                                             baseData = e,
                                             value = itemEffect.value,
@@ -578,8 +528,7 @@ public class TurnGameManager : MonoBehaviour
                                     var targets = allies.Where(u => !u.isDead);
                                     foreach(var t in targets)
                                     {
-                                        //t.ApplyEffectOverride(e,itemEffect.value,itemEffect.mul,itemEffect.duration);
-                                        EffectPipeline.ApplyEffectPacket(t,new EffectPipeline.EffectPacket
+                                        EffectPipeline.ApplyEffectPacket(t,new EffectEvent
                                         {
                                             baseData = e,
                                             value = itemEffect.value,
@@ -603,20 +552,34 @@ public class TurnGameManager : MonoBehaviour
                 if(support == null) return false;
                 if(!support.CanUseSupport()) return false;
                 Debug.Log("use supportSkill");
-                int supDmg = support.CalcDamage();
+                int subDmg = 0;
                 switch (selectSkill.targetType)
                 {
                     case TargetType.AllySingle:
                     case TargetType.EnemySingle:
                     case TargetType.Self:
-                        unit.TakeDamage(target,selectSkill,supDmg);
+                        subDmg = support.CalcDamage(target);
+                        DamagePipeline.Apply(new DamageEvent
+                        {
+                            target = target,
+                            amount = subDmg,
+                            kind = DamageKind.Direct,
+                            allowDamageReduction = true
+                        });
                         break;
                     
                     case TargetType.AllyAll:
                         var targets = allies.Where(u=>!u.isDead);
                         foreach(var t in targets)
                         {
-                            unit.TakeDamage(t,selectSkill,supDmg);
+                            subDmg = support.CalcDamage(t);
+                            DamagePipeline.Apply(new DamageEvent
+                            {
+                                target = t,
+                                amount = subDmg,
+                                kind = DamageKind.Direct,
+                                allowDamageReduction = true
+                            });
                         }
                         break;
                     
@@ -624,7 +587,15 @@ public class TurnGameManager : MonoBehaviour
                         var tar = enemies.Where(u=>!u.isDead);
                         foreach(var t in tar)
                         {
-                            unit.TakeDamage(t,selectSkill,supDmg);
+                            //unit.TakeDamage(t,selectSkill,supDmg);
+                            subDmg = support.CalcDamage(t);
+                            DamagePipeline.Apply(new DamageEvent
+                            {
+                                target = t,
+                                amount = subDmg,
+                                kind = DamageKind.Direct,
+                                allowDamageReduction = true
+                            });
                         }
                         break;
                 }

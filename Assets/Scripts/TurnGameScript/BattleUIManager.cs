@@ -196,6 +196,15 @@ public class BattleUIManager : MonoBehaviour
             SettingButtonUI(false,false,null);
             return;
         }
+        
+        bool isPassive = support.data.cast == CastType.Passive;
+
+        if (isPassive)
+        {
+            SettingButtonUI(false,false,"Passive");
+            return;
+        }
+
         bool canUseSubAction = unit.CanUseSubAction();
         bool isCooldown = support.CanUseSupport();
         bool canUse = canUseSubAction && isCooldown;
