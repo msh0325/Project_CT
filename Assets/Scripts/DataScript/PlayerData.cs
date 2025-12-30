@@ -25,8 +25,6 @@ public class PlayerData : MonoBehaviour
     public Dictionary<string, int> itemBoxMap = new();
     // 이벤트 플래그 : 튜토리얼 클리어, NPC 만남 등
 
-    public List<Passive> passives = new();
-
     void Awake()
     {
         if(instance == null)

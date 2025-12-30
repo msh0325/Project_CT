@@ -34,13 +34,13 @@ public class Passive
 
 public class PassiveSystem : MonoBehaviour
 {
-    public void NotifyTirgger(BattleUnit unit, PassiveTrigger trigger)
+    public void NotifyTirgger(BattleUnit unit, PassiveTrigger trigger, int currentRound)
     {
         if(unit == null || unit.isDead) return;
         if(unit.passives == null) return;
         foreach(var ps in unit.passives)
         {
-            ps.UpdatePassiveTrigger(unit, trigger);
+            ps.UpdatePassiveTrigger(unit, trigger, currentRound);
         }
     }
 }
@@ -51,6 +51,7 @@ public class PassiveRuntime
     public Passive data;
     public bool isActive;
     public EffectData passiveEffect;
+    public int pendingRound = -1;
 
     public void UpdatePassive(BattleUnit target, BattleState timing)
     {
@@ -81,7 +82,7 @@ public class PassiveRuntime
         }
     }
 
-    public void UpdatePassiveTrigger(BattleUnit target, PassiveTrigger trigger)
+    public void UpdatePassiveTrigger(BattleUnit target, PassiveTrigger trigger, int currentRound)
     {
         if(target == null || target.isDead) return;
         if(data == null) return;
@@ -99,6 +100,9 @@ public class PassiveRuntime
             });
             return;
         }
+
+        // 다음 라운드 적용 예약
+        pendingRound = currentRound + data.applyNextRound;
     }
 
     public bool CheckCondition(BattleUnit target)
@@ -123,5 +127,21 @@ public class PassiveRuntime
             CompareOP.LT => left < right,
             _ => false
         };
+    }
+
+    public void TryApplyPendingOnRoundStart(BattleUnit target, int currentRound)
+    {
+        if(target == null || target.isDead) return;
+        if(pendingRound != currentRound) return;
+
+        pendingRound = -1;
+        EffectPipeline.ApplyEffectPacket(target, new EffectEvent
+        {
+            baseData = passiveEffect,
+            value = 0,
+            mul = passiveEffect.statmul,
+            duration = 1,
+            source = null
+        });
     }
 }

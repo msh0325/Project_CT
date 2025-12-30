@@ -2412,7 +2412,6 @@ MonoBehaviour:
   itemBox:
   - itemID: TEST_IT04
     stack: 2
-  passives: []
 --- !u!4 &1557864987
 Transform:
   m_ObjectHideFlags: 0

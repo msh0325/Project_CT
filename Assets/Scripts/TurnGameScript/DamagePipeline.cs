@@ -19,9 +19,11 @@ public struct DamageEvent
 public static class DamagePipeline
 {
     public static PassiveSystem passiveSystem;
-    public static void Init(PassiveSystem p)
+    public static BattleContext battleContext;
+    public static void Init(PassiveSystem p, BattleContext b)
     {
         passiveSystem = p;
+        battleContext = b;
     }
     public static int Apply(DamageEvent ev)
     {
@@ -37,7 +39,7 @@ public static class DamagePipeline
         }
 
         ev.target.currentHP = Mathf.Max(ev.target.currentHP - dmg, 0);
-        passiveSystem?.NotifyTirgger(ev.target,PassiveTrigger.AfterDamageTaken);
+        passiveSystem?.NotifyTirgger(ev.target,PassiveTrigger.AfterDamageTaken, battleContext.currentRound);
         return dmg;
     }
 }

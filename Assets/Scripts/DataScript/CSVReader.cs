@@ -816,9 +816,11 @@ public class CSVReader : MonoBehaviour
                 timing = pstiming,
                 trigger = pstrigger,
                 condition = condition,
+                op = op,
                 condition_value = condition_value,
                 stat = stat,
-                value = value
+                value = value,
+                applyNextRound = pstrigger == PassiveTrigger.AfterAction || pstrigger == PassiveTrigger.AfterDamageTaken? 1 : 0
             };
 
             if (!saveFile.ContainsKey(data.passiveID))

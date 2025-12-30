@@ -15,6 +15,9 @@
   > 원래 조건이 달성되는 순간부터 적용되게 하려고 했는데, 이것보단 그냥 timing 체크가 나을것 같음.
 
   > 라고 생각했지만 패시브 중에 특정 행동이 진행됐을 때 그 다음 라운드에 패시브가 적용되게 하려면 결국 trigger 가 필요해 trigger 만들어서 적용함. 그래서 passivedata나 다른 부분에 다음턴에 적용된다는 인자 필요.
+
+  > passive에 trigger가 afteraction이나 afterdamagetaken일 때 applyNextround가 1이 됨. (다음 턴에 패시브 적용)
+  아마 나중에 trigger가 더 세분화 될지도 모름.
  3. 적 AI 만들기(최소 패턴 > 패턴/가중치 확장)
  4. 공격/방어 개성 기획하기
 

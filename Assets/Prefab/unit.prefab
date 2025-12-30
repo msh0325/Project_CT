@@ -28,7 +28,7 @@ Transform:
   m_GameObject: {fileID: 423449336136762669}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -5.23, y: -0.85, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -119,8 +119,8 @@ MonoBehaviour:
     currentHP: 0
     currentMP: 0
     currentSpeed: 0
-    attack_mul: 0
-    defense_mul: 0
+    attackBonus: 0
+    defenseBonus: 0
     criticalBonus: 0
     activeEffects: []
     pcCharStat:
@@ -140,6 +140,7 @@ MonoBehaviour:
       row: 0
       battleEquippedSkillID: []
     row: 0
+    passives: []
     mainActionCount: 0
     leftMainAction: 0
     subActionCount: 0

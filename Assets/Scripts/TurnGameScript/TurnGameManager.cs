@@ -35,8 +35,8 @@ public class TurnGameManager : MonoBehaviour
     private DataManager dataManager;
     private PlayerData pcDataManager;
     public PassiveSystem passiveSystem;
+    public BattleContext battleContext;
     
-    private int nowWaveIndex = 0;
     private int currentTurnIndex = 0;
     public BattleState state = BattleState.Idle;
     private bool isBattleEnd = false;
@@ -124,6 +124,10 @@ public class TurnGameManager : MonoBehaviour
                 foreach(var u in allies.Where(u => !u.isDead))
                 {
                     support.passiveRuntime.UpdatePassive(u,state);
+                    foreach(var pr in u.passives)
+                    {
+                        pr.TryApplyPendingOnRoundStart(u, battleContext.currentRound);
+                    }
                 }
             }
 
@@ -143,7 +147,7 @@ public class TurnGameManager : MonoBehaviour
                 }
                 // 3. turnOrder 순으로 캐릭터 턴 시작 (state = TurnStart)
                 state = BattleState.TurnStart;
-                if(nowUnit.team == TeamType.Ally && support != null) support.passiveRuntime.UpdatePassive(nowUnit,state);
+                if(nowUnit.team == TeamType.Ally && support != null) support.passiveRuntime?.UpdatePassive(nowUnit,state);
                 // 턴 진행중 죽었으면 다음 순서
                 if(nowUnit.isDead) continue;                
                 // 4. 캐릭터 행동 대기. 플레이어의 주/부 행동 입력 or 적의 AI 입력 (state = RunTurn)
@@ -231,6 +235,7 @@ public class TurnGameManager : MonoBehaviour
             }
             // 6. 모든 캐릭터가 행동 종료했으면 라운드 종료 (state = RoundEnd)
             state = BattleState.RoundEnd;
+            battleContext.NextRound();
             foreach(var u in turnOrder)
             {
                 u.CheckEffect(state);
@@ -284,8 +289,8 @@ public class TurnGameManager : MonoBehaviour
             uiManager.RegisterBattleUI(view);
         }
 
-        SpawnEnemyUnit(nowWaveIndex);
-        DamagePipeline.Init(passiveSystem);
+        SpawnEnemyUnit(battleContext.currentWave);
+        DamagePipeline.Init(passiveSystem, battleContext);
 
         // 서포트 캐릭터 불러오기
         support = SupportUnit.TryCreat(PlayerData.instance,dataManager);
@@ -355,7 +360,8 @@ public class TurnGameManager : MonoBehaviour
         {
             if (HasNextWave())
             {
-                nowWaveIndex++;
+                battleContext.NextWave();  
+                battleContext.currentRound = 0;
                 isWaveEnd = true;
                 Debug.Log("next wave");
                 uiManager.ForceExitSelectMode();
@@ -363,7 +369,7 @@ public class TurnGameManager : MonoBehaviour
                 {
                     Destroy(enemyPrefabs[i]);
                 }
-                SetUpWaveBattleUnits(nowWaveIndex);
+                SetUpWaveBattleUnits(battleContext.currentWave);
                 return false;
             }
             else
@@ -382,7 +388,7 @@ public class TurnGameManager : MonoBehaviour
         {
             return false;
         }
-        return nowWaveIndex + 1 < waves.Count;
+        return battleContext.currentWave + 1 < waves.Count;
     }
 
     // 플레이어는 한번 소환하면 끝이지만, 적은 wave마다 소환이 필요해 따로 빼둠
@@ -431,7 +437,7 @@ public class TurnGameManager : MonoBehaviour
                 if(!unit.CanUseMainAction()) return true;
                 if(target != null) unit.Attack(target);
                 unit.UseMainAction();
-                passiveSystem.NotifyTirgger(unit,PassiveTrigger.AfterAction);
+                passiveSystem.NotifyTirgger(unit,PassiveTrigger.AfterAction, battleContext.currentRound);
                 return !unit.CanUseMainAction();
             
             case BattleCommandType.Skill:
