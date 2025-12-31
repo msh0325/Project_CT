@@ -23,6 +23,7 @@ public class PlayerData : MonoBehaviour
     // 인벤토리 : 메인/서브퀘 깨면서 얻은 아이템들. 퀘스트 아이템도 포함
     public List<ItemStack> itemBox = new();
     public Dictionary<string, int> itemBoxMap = new();
+    static Dictionary<string, Sprite> _iconCache = new();
     // 이벤트 플래그 : 튜토리얼 클리어, NPC 만남 등
 
     void Awake()
@@ -37,6 +38,7 @@ public class PlayerData : MonoBehaviour
             Destroy(gameObject);
         }
         SetDataMap();
+        _iconCache["default"] = Resources.Load<Sprite>("Image/IC_ITEM_DEFAULT");
     }
 
     void Start()
@@ -117,5 +119,27 @@ public class PlayerData : MonoBehaviour
                 itemBoxMap.Add(i.itemID, i.stack);
             }
         }
+    }
+
+    public void UseItem(string itemID)
+    {
+        if (!itemBoxMap.TryGetValue(itemID, out var count))
+        {
+            Debug.LogWarning($"itembox에 없는 id : {itemID}");
+            return;
+        }
+
+        itemBoxMap[itemID] = count -1;
+        if(itemBoxMap[itemID] <= 0) itemBoxMap.Remove(itemID);
+    }
+
+    public Sprite GetItemIcon(string iconKey)
+    {
+        if(string.IsNullOrEmpty(iconKey)) return _iconCache["default"];
+        if(_iconCache.TryGetValue(iconKey, out var sp)) return sp;
+
+        sp = Resources.Load<Sprite>($"Image/{iconKey}");
+        _iconCache[iconKey] = sp;
+        return sp;
     }
 }

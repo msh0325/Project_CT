@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 public enum ItemType // 장착템 / 소모템 구분
 {
@@ -26,6 +25,8 @@ public class ItemData
     public List<ItemEffect> itemEffect;
     public int maxStack;
     public int cooltime;
+
+    public string iconKey;
 }
 
 [Serializable]
@@ -59,3 +60,4 @@ public class ItemStack
     public string itemID;
     public int stack;
 }
+

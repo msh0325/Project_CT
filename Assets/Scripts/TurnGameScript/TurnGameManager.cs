@@ -549,6 +549,9 @@ public class TurnGameManager : MonoBehaviour
                     }
                 }
                 
+                pcDataManager.UseItem(selectItem.itemID);
+                uiManager.itemPannel.GetComponent<ItemInventoryPannel>().Refresh();
+                
                 Debug.Log("use item");
                 unit.UseSubAction();
                 return false;
@@ -593,7 +596,6 @@ public class TurnGameManager : MonoBehaviour
                         var tar = enemies.Where(u=>!u.isDead);
                         foreach(var t in tar)
                         {
-                            //unit.TakeDamage(t,selectSkill,supDmg);
                             subDmg = support.CalcDamage(t);
                             DamagePipeline.Apply(new DamageEvent
                             {

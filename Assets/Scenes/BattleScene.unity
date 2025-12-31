@@ -1027,6 +1027,7 @@ MonoBehaviour:
   mainCam: {fileID: 1969651101}
   playerUIPannel: {fileID: 2042374419}
   skillUIPannel: {fileID: 1449519240}
+  itemPannel: {fileID: 1636642835}
   attackBtn: {fileID: 443353211}
   skillBtn: {fileID: 1851187340}
   defendBtn: {fileID: 55017297}
@@ -1669,13 +1670,14 @@ GameObject:
   - component: {fileID: 1636642834}
   - component: {fileID: 1636642833}
   - component: {fileID: 1636642832}
+  - component: {fileID: 1636642835}
   m_Layer: 5
   m_Name: ItemPannel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1636642831
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1691,9 +1693,9 @@ RectTransform:
   m_Father: {fileID: 898788352}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -390, y: -400}
-  m_SizeDelta: {x: -780, y: -800}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 570, y: 140}
+  m_SizeDelta: {x: 1140, y: 280}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1636642832
 MonoBehaviour:
@@ -1757,6 +1759,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1636642830}
   m_CullTransparentMesh: 1
+--- !u!114 &1636642835
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1636642830}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5046527ecd85fe94180f0bd80cb85e1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  itemSlotPrefab: {fileID: 1514455105241683112, guid: a7bdd0be0a50ec343b0ad904de02ec7b, type: 3}
+  slotNum: 16
 --- !u!1 &1717265322
 GameObject:
   m_ObjectHideFlags: 0

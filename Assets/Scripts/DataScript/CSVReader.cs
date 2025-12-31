@@ -459,7 +459,7 @@ public class CSVReader : MonoBehaviour
 
             string[] cols = line.Split(',');
 
-            if(cols.Length < 9)
+            if(cols.Length < 10)
             {
                 Debug.LogWarning($"item 컬럼 개수 부족 line : {line}");
                 continue;
@@ -617,7 +617,8 @@ public class CSVReader : MonoBehaviour
                 target = targetType,
                 itemEffect = effects,
                 maxStack = stack,
-                cooltime = cool
+                cooltime = cool,
+                iconKey = cols[9]
             };
 
             if (!saveFile.ContainsKey(data.itemID))

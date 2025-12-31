@@ -10,6 +10,7 @@ public class BattleUIManager : MonoBehaviour
     public Camera mainCam;
     public GameObject playerUIPannel;
     public SkillPannel skillUIPannel;
+    public ItemInventoryPannel itemPannel;
     public Button attackBtn;
     public Button skillBtn;
     public Button defendBtn;
@@ -50,15 +51,7 @@ public class BattleUIManager : MonoBehaviour
 
         itemBtn.onClick.AddListener(() =>
         {
-            var inventory = PlayerData.instance.itemBoxMap;
-            foreach(var i in inventory)
-            {
-                if(i.Value <= 0) continue;
-                if(DataManager.instance.itemData.TryGetValue(i.Key, out var item))
-                {
-                    gm.OnPlayerSelectCommand(TurnGameManager.BattleCommandType.Item,null,item);
-                }
-            }
+            SetItemPannel(!itemPannel.gameObject.activeSelf);
         });
 
         supportBtn.onClick.AddListener(() =>
@@ -160,6 +153,11 @@ public class BattleUIManager : MonoBehaviour
     {
         playerUIPannel.SetActive(true);
         skillUIPannel.SettingSkills(unit);
+    }
+
+    public void SetItemPannel(bool on)
+    {
+        itemPannel.gameObject.SetActive(on);
     }
 
     public void SwitchShowUI()

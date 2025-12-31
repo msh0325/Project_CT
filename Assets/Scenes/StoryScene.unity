@@ -2410,8 +2410,10 @@ MonoBehaviour:
     cast: 0
   nowSelectStageID: TEST_ST01
   itemBox:
-  - itemID: TEST_IT04
+  - itemID: TEST_IT02
     stack: 2
+  - itemID: TEST_IT04
+    stack: 1
 --- !u!4 &1557864987
 Transform:
   m_ObjectHideFlags: 0
