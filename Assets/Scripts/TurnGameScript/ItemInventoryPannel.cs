@@ -5,6 +5,7 @@ public class ItemInventoryPannel : MonoBehaviour
     private PlayerData pcData;
     [SerializeField] private GameObject itemSlotPrefab;
     private GameObject[] slots;
+    private ItemSlot nowSelectSlot;
     public int slotNum = 16;
 
     void Start()
@@ -15,12 +16,13 @@ public class ItemInventoryPannel : MonoBehaviour
         for(int i = 0; i < slotNum; i++)
         {
             slots[i] = Instantiate(itemSlotPrefab,transform);
+            slots[i].GetComponent<ItemSlot>().itemPannel = this;
+            slots[i].GetComponent<ItemSlot>().SetEmpty();
         }
 
         int index = 0;
         foreach(var itemStack in pcData.itemBoxMap)
         {
-            if(itemStack.Value <= 0) continue;
             if(index >= slotNum) break;
 
             ItemSlot slot = slots[index].GetComponent<ItemSlot>();
@@ -43,7 +45,6 @@ public class ItemInventoryPannel : MonoBehaviour
         int index = 0;
         foreach(var kv in pcData.itemBoxMap)
         {
-            if(kv.Value <= 0) continue;
             if(index >= slotNum) break;
 
             DataManager.instance.itemData.TryGetValue(kv.Key, out var itemData);
@@ -51,5 +52,26 @@ public class ItemInventoryPannel : MonoBehaviour
             slot.Bind(itemData, kv.Key, kv.Value);
             index++;
         }
+    }
+
+    public void SelectSlot(ItemSlot s)
+    {
+        if(nowSelectSlot != null)
+        {
+            nowSelectSlot.Selected(false);
+        }
+
+        nowSelectSlot = s;
+        nowSelectSlot.Selected(true);
+    }
+
+    public void ClearSelectSlot()
+    {
+        if(nowSelectSlot != null)
+        {
+            nowSelectSlot.Selected(false);
+        }
+
+        nowSelectSlot = null;
     }
 }

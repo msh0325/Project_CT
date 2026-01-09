@@ -129,8 +129,8 @@ public class PlayerData : MonoBehaviour
             return;
         }
 
-        itemBoxMap[itemID] = count -1;
-        if(itemBoxMap[itemID] <= 0) itemBoxMap.Remove(itemID);
+        itemBoxMap[itemID] = Mathf.Max(0, count -1);
+        //if(itemBoxMap[itemID] <= 0) itemBoxMap.Remove(itemID);
     }
 
     public Sprite GetItemIcon(string iconKey)

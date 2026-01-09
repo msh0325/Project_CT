@@ -551,6 +551,7 @@ public class TurnGameManager : MonoBehaviour
                 
                 pcDataManager.UseItem(selectItem.itemID);
                 uiManager.itemPannel.GetComponent<ItemInventoryPannel>().Refresh();
+                uiManager.itemPannel.ClearSelectSlot();
                 
                 Debug.Log("use item");
                 unit.UseSubAction();

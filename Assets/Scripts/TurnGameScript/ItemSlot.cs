@@ -4,6 +4,7 @@ using UnityEngine.UI;
 
 public class ItemSlot : MonoBehaviour
 {
+    public ItemInventoryPannel itemPannel;
     public TMP_Text count_Text;
     public Image itemImg;
     public ItemData itemData;
@@ -12,11 +13,13 @@ public class ItemSlot : MonoBehaviour
     public Button btn;
     public Outline outline;
 
-    void Start()
+    void Awake()
     {
         btn.onClick.AddListener(() =>
         {
             if(itemData == null) return;
+            
+            itemPannel.SelectSlot(this);
             TurnGameManager.instance.OnPlayerSelectCommand(TurnGameManager.BattleCommandType.Item,null,itemData);
         });
     }
@@ -31,6 +34,7 @@ public class ItemSlot : MonoBehaviour
         itemImg.sprite = null;
         //btn.interactable = false;
         count_Text.color = Color.black;
+        outline.enabled = false;
     }
 
     public void Bind(ItemData data, string id, int c)
@@ -41,7 +45,22 @@ public class ItemSlot : MonoBehaviour
 
         count_Text.text = c.ToString();
         itemImg.sprite = PlayerData.instance.GetItemIcon(itemData.iconKey);
+
+        
+        if(itemCount <= 0)
+        {
+            btn.interactable = false;
+            count_Text.color = Color.red;
+            outline.enabled = false;
+            return;
+        }
+
         btn.interactable = true;
         count_Text.color = Color.black;
+    }
+
+    public void Selected(bool on)
+    {
+        outline.enabled = on;
     }
 }

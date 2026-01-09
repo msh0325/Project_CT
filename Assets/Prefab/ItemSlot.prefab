@@ -242,9 +242,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6e80514b7cf8924fb4de0424ff1fa8e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  itemPannel: {fileID: 0}
   count_Text: {fileID: 5031006616519413397}
   itemImg: {fileID: 4130511298657173503}
-  data:
+  itemData:
     itemID: 
     itemType: 0
     name: 
@@ -266,7 +267,10 @@ MonoBehaviour:
     maxStack: 0
     cooltime: 0
     iconKey: 
+  itemID: 
+  itemCount: 0
   btn: {fileID: 4906435157103215380}
+  outline: {fileID: -6363111024345733384}
 --- !u!114 &4906435157103215380
 MonoBehaviour:
   m_ObjectHideFlags: 0
