@@ -8,9 +8,8 @@ public class ItemInventoryPannel : MonoBehaviour
     private ItemSlot nowSelectSlot;
     public int slotNum = 16;
 
-    void Start()
+    void Awake()
     {
-        pcData = PlayerData.instance;
         slots = new GameObject[slotNum];
 
         for(int i = 0; i < slotNum; i++)
@@ -19,7 +18,20 @@ public class ItemInventoryPannel : MonoBehaviour
             slots[i].GetComponent<ItemSlot>().itemPannel = this;
             slots[i].GetComponent<ItemSlot>().SetEmpty();
         }
+    }
+    void Start()
+    {
+        SettingSlots();
+    }
 
+    void OnEnable()
+    {
+        pcData = PlayerData.instance;
+        Refresh();
+    }
+
+    public void SettingSlots()
+    {
         int index = 0;
         foreach(var itemStack in pcData.itemBoxMap)
         {
@@ -29,7 +41,7 @@ public class ItemInventoryPannel : MonoBehaviour
             slot.count_Text.text = itemStack.Value.ToString();
             DataManager.instance.itemData.TryGetValue(itemStack.Key, out var itemdata);
             
-            slot.Bind(itemdata,itemStack.Key, itemStack.Value);
+            slot.Bind(itemdata,itemStack.Key, itemStack.Value.stack);
             index++;
         }
     }
@@ -49,7 +61,18 @@ public class ItemInventoryPannel : MonoBehaviour
 
             DataManager.instance.itemData.TryGetValue(kv.Key, out var itemData);
             var slot = slots[index].GetComponent<ItemSlot>();
-            slot.Bind(itemData, kv.Key, kv.Value);
+            int cooltime = kv.Value.nowCooltime;
+            if(cooltime > 0)
+            {
+                slot.ShowCooltime(true, cooltime);
+            }
+            else
+            {
+                slot.ShowCooltime(false);
+            }
+            
+            slot.Bind(itemData, kv.Key, kv.Value.stack);
+            slot.SetButtonClick(kv.Value.CanUseItem());
             index++;
         }
     }

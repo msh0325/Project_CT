@@ -22,7 +22,7 @@ public class PlayerData : MonoBehaviour
     // 진행 상황 : 클리어현황, 특정 기능 해금
     // 인벤토리 : 메인/서브퀘 깨면서 얻은 아이템들. 퀘스트 아이템도 포함
     public List<ItemStack> itemBox = new();
-    public Dictionary<string, int> itemBoxMap = new();
+    public Dictionary<string, ItemStack> itemBoxMap = new();
     static Dictionary<string, Sprite> _iconCache = new();
     // 이벤트 플래그 : 튜토리얼 클리어, NPC 만남 등
 
@@ -114,23 +114,19 @@ public class PlayerData : MonoBehaviour
 
         foreach(var i in itemBox)
         {
+            if(!dataManager.itemData.TryGetValue(i.itemID, out var data))
+            {
+                Debug.LogWarning($"itemdata에 {i.itemID} 없음");
+                continue;
+            }
+
+            i.cooltime = data.cooltime;
+            
             if (!itemBoxMap.ContainsKey(i.itemID))
             {
-                itemBoxMap.Add(i.itemID, i.stack);
+                itemBoxMap.Add(i.itemID, i);
             }
         }
-    }
-
-    public void UseItem(string itemID)
-    {
-        if (!itemBoxMap.TryGetValue(itemID, out var count))
-        {
-            Debug.LogWarning($"itembox에 없는 id : {itemID}");
-            return;
-        }
-
-        itemBoxMap[itemID] = Mathf.Max(0, count -1);
-        //if(itemBoxMap[itemID] <= 0) itemBoxMap.Remove(itemID);
     }
 
     public Sprite GetItemIcon(string iconKey)

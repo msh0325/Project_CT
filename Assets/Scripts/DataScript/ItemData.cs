@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public enum ItemType // 장착템 / 소모템 구분
 {
@@ -58,6 +59,33 @@ public class ItemEffect
 public class ItemStack
 {
     public string itemID;
+    public int maxStack;
     public int stack;
+
+    public int cooltime;
+    public int nowCooltime = 0;
+
+    public bool CanUseItem()
+    {
+        if(nowCooltime > 0) return false;
+
+        if(stack <= 0) return false;
+
+        return true;
+    }
+
+    public void UseItem()
+    {
+        stack = Mathf.Max(stack -1 , 0);
+
+        if(stack <= 0) return;
+
+        nowCooltime = cooltime;
+    }
+
+    public void TickCoolDown()
+    {
+        nowCooltime = Mathf.Max(nowCooltime - 1, 0);
+    }
 }
 

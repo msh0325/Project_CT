@@ -133,6 +133,10 @@ public class TurnGameManager : MonoBehaviour
 
             RollUnitSpeed();
             support?.TickCoolDown();
+            foreach(var item in pcDataManager.itemBoxMap)
+            {
+                item.Value.TickCoolDown();
+            }
             
             for(int i = 0; i < turnOrder.Count; i++)
             {
@@ -493,6 +497,13 @@ public class TurnGameManager : MonoBehaviour
 
             case BattleCommandType.Item:
                 if(!unit.CanUseSubAction()) return false;
+                if(!pcDataManager.itemBoxMap.TryGetValue(selectItem.itemID, out var item))
+                {
+                    Debug.LogWarning($"itemboxmap에서 {selectItem.itemID}를 찾을 수 없음");
+                    return false;
+                }
+                if(!item.CanUseItem()) return false;
+
                 foreach(var itemEffect in selectItem.itemEffect)
                 {
                     if(dataManager.effectDatas.TryGetValue(itemEffect.effectID, out var e))
@@ -549,7 +560,7 @@ public class TurnGameManager : MonoBehaviour
                     }
                 }
                 
-                pcDataManager.UseItem(selectItem.itemID);
+                item.UseItem();
                 uiManager.itemPannel.GetComponent<ItemInventoryPannel>().Refresh();
                 uiManager.itemPannel.ClearSelectSlot();
                 

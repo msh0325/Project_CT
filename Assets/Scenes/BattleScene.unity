@@ -1771,7 +1771,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5046527ecd85fe94180f0bd80cb85e1c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  itemSlotPrefab: {fileID: 1514455105241683112, guid: a7bdd0be0a50ec343b0ad904de02ec7b, type: 3}
+  itemSlotPrefab: {fileID: 2174919457721179565, guid: a7bdd0be0a50ec343b0ad904de02ec7b, type: 3}
   slotNum: 16
 --- !u!1 &1717265322
 GameObject:

@@ -5,6 +5,8 @@ using UnityEngine.UI;
 public class ItemSlot : MonoBehaviour
 {
     public ItemInventoryPannel itemPannel;
+    public GameObject cooltimeImg;
+    public TMP_Text cooltime_Text;
     public TMP_Text count_Text;
     public Image itemImg;
     public ItemData itemData;
@@ -32,7 +34,6 @@ public class ItemSlot : MonoBehaviour
 
         count_Text.text = "";
         itemImg.sprite = null;
-        //btn.interactable = false;
         count_Text.color = Color.black;
         outline.enabled = false;
     }
@@ -49,18 +50,34 @@ public class ItemSlot : MonoBehaviour
         
         if(itemCount <= 0)
         {
-            btn.interactable = false;
             count_Text.color = Color.red;
             outline.enabled = false;
             return;
         }
 
-        btn.interactable = true;
         count_Text.color = Color.black;
     }
 
     public void Selected(bool on)
     {
         outline.enabled = on;
+    }
+
+    public void SetButtonClick(bool on)
+    {
+        btn.interactable = on;
+    }
+
+    public void ShowCooltime(bool on, int cooltime = 0)
+    {
+        if (on)
+        {
+            cooltimeImg.SetActive(true);
+            cooltime_Text.text = cooltime.ToString();
+        }
+        else
+        {
+            cooltimeImg.SetActive(false);
+        }
     }
 }
