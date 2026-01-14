@@ -26,8 +26,6 @@ public class TurnGameManager : MonoBehaviour
     private ItemData selectItem;
     private BattleUnit selectedTarget;
     private string stageID;
-    private List<BattleUnit> allies = new();
-    private List<BattleUnit> enemies = new();
     private List<BattleUnit> turnOrder = new();
     private List<WaveData> waves = new();
     [SerializeField] private SupportUnit support = new();
@@ -42,6 +40,8 @@ public class TurnGameManager : MonoBehaviour
     private bool isBattleEnd = false;
     private bool isWaveEnd = false;
     private System.Random rnd = new ();
+
+    public EnemyAIController enemyAI = new EnemyAIController();
 
     public enum BattleCommandType
     {
@@ -82,6 +82,7 @@ public class TurnGameManager : MonoBehaviour
             pcDataManager = PlayerData.instance;
         }
         stageID = pcDataManager.nowSelectStageID;
+
         StartCoroutine(BattleRoutine());
     }
 
@@ -121,7 +122,8 @@ public class TurnGameManager : MonoBehaviour
             }
             if(support != null && support.supportPassive != null)
             {
-                foreach(var u in allies.Where(u => !u.isDead))
+                //foreach(var u in allies.Where(u => !u.isDead))
+                foreach(var u in battleContext.allies.Where(u => !u.isDead))
                 {
                     support.passiveRuntime.UpdatePassive(u,state);
                     foreach(var pr in u.passives)
@@ -177,7 +179,7 @@ public class TurnGameManager : MonoBehaviour
                         yield return new WaitUntil(()=> isPlayerChecked == false);
 
                         target = selectedTarget;
-                        isActionDone = ExcutePlayerCommand(nowUnit,target,command);
+                        isActionDone = ExecutePlayerCommand(nowUnit,target,command);
                         foreach(var ui in uis) ui.Refresh();
 
                         if (CheckBattleOver())
@@ -196,23 +198,28 @@ public class TurnGameManager : MonoBehaviour
                 }
                 else
                 {
-                    // 적은 자동으로 공격
-                    target = allies.FirstOrDefault(u =>!u.isDead);
-                    if(target != null)
+                    // EnemyAIController에 따라 타겟과 액션 결정
+                    // 지금은 랜덤 타겟에 attack 만 작동
+                    bool isActionDone = false;
+                    nowUnit.OnTurnStart();
+                    while(!isActionDone)
                     {
-                        nowUnit.Attack(target); 
-                    }
-                    if (CheckBattleOver())
-                    {
-                        state = BattleState.Idle;
-                        yield break;
-                    }
-                    
-                    if (isWaveEnd)
-                    {
-                        isWaveEnd = false;
-                        breakRound = true;
-                        break;
+                        AIAction action = enemyAI.DecideAction(nowUnit, battleContext);
+                        isActionDone = ExecuteAIAction(nowUnit, action);
+                        foreach(var ui in uis) ui.Refresh();
+
+                        if (CheckBattleOver())
+                        {
+                            state = BattleState.Idle;
+                            yield break;
+                        }
+
+                        if (isWaveEnd)
+                        {
+                            isWaveEnd = false;
+                            breakRound = true;
+                            break;
+                        }
                     }
                 }
                 uiManager.HidePlayerUI();    
@@ -281,7 +288,8 @@ public class TurnGameManager : MonoBehaviour
             {
                 partyChar = ally
             };
-            allies.Add(unit);
+            //allies.Add(unit);
+            battleContext.allies.Add(unit);
             turnOrder.Add(unit);
 
             unit.InitSkills(dataManager.skillDatas);
@@ -297,16 +305,19 @@ public class TurnGameManager : MonoBehaviour
         DamagePipeline.Init(passiveSystem, battleContext);
 
         // 서포트 캐릭터 불러오기
-        support = SupportUnit.TryCreat(PlayerData.instance,dataManager);
-        support?.ApplySupportPassive(allies);
+        support = SupportUnit.TryCreate(PlayerData.instance,dataManager);
+        //support?.ApplySupportPassive(allies);
+        support?.ApplySupportPassive(battleContext.allies);
     }
 
     private void SetUpWaveBattleUnits(int waveIndex)
     {
         turnOrder.Clear();
-        enemies.Clear();
+        //enemies.Clear();
+        battleContext.enemies.Clear();
 
-        foreach(var ally in allies)
+        //foreach(var ally in allies)
+        foreach(var ally in battleContext.allies)
         {
             if (!ally.isDead)
             {
@@ -320,7 +331,8 @@ public class TurnGameManager : MonoBehaviour
     private void RollUnitSpeed()
     {
         // 죽은 캐릭터 turnOrder에서 제외
-        turnOrder = allies.Concat(enemies).Where(u=>!u.isDead).ToList();
+        //turnOrder = allies.Concat(enemies).Where(u=>!u.isDead).ToList();
+        turnOrder = battleContext.allies.Concat(battleContext.enemies).Where(u=>!u.isDead).ToList();
 
         // 현재 참여중인 캐릭터 속도 굴리기
         foreach(BattleUnit unit in turnOrder)
@@ -350,8 +362,10 @@ public class TurnGameManager : MonoBehaviour
     private bool CheckBattleOver()
     {
         // 전투 종료 체크 >> 모든 아군 사망 or 모든 적 사망
-        bool alliesAllDead = allies.All(u => u.isDead);
-        bool enemiesAllDead = enemies.All(u => u.isDead);
+        //bool alliesAllDead = allies.All(u => u.isDead);
+        bool alliesAllDead = battleContext.allies.All(u=>u.isDead);
+        //bool enemiesAllDead = enemies.All(u => u.isDead);
+        bool enemiesAllDead = battleContext.enemies.All(u=>u.isDead);
 
         if (alliesAllDead)
         {
@@ -416,7 +430,8 @@ public class TurnGameManager : MonoBehaviour
             for(int c = 0; c < count; c++)
             {
                 BattleUnit unit = new(baseStat,TeamType.Enemy, wave.enemyRow[rowCount]);
-                enemies.Add(unit);
+                //enemies.Add(unit);
+                battleContext.enemies.Add(unit);
                 turnOrder.Add(unit);
                 unit.InitSkills(dataManager.skillDatas);
 
@@ -431,7 +446,7 @@ public class TurnGameManager : MonoBehaviour
     }
 
     // 플레이어의 행동 실행 함수
-    private bool ExcutePlayerCommand(BattleUnit unit, BattleUnit target, BattleCommandType cmd)
+    private bool ExecutePlayerCommand(BattleUnit unit, BattleUnit target, BattleCommandType cmd)
     {
         // 주 행동 모두 소모하면 즉시 턴 종료.
         // 턴을 안 까먹는 행동(부 행동)은 false, 턴을 까먹는 행동(주 행동)은 true 리턴
@@ -461,7 +476,8 @@ public class TurnGameManager : MonoBehaviour
                     
                     case TargetType.AllyAll:
                         {
-                            var targets = allies.Where(u=>!u.isDead);
+                            //var targets = allies.Where(u=>!u.isDead);
+                            var targets = battleContext.allies.Where(u=>!u.isDead);
                             foreach(var t in targets)
                             {
                                 unit.TakeDamage(t,selectSkill,power);
@@ -471,7 +487,8 @@ public class TurnGameManager : MonoBehaviour
                     
                     case TargetType.EnemyAll:
                         {
-                            var targets = enemies.Where(u=>!u.isDead);
+                            //var targets = enemies.Where(u=>!u.isDead);
+                            var targets = battleContext.enemies.Where(u=>!u.isDead);
                             foreach(var t in targets)
                             {
                                 unit.TakeDamage(t,selectSkill,power);
@@ -525,7 +542,8 @@ public class TurnGameManager : MonoBehaviour
 
                             case TargetType.EnemyAll:
                                 {
-                                    var targets = enemies.Where(u => !u.isDead);
+                                    //var targets = enemies.Where(u => !u.isDead);
+                                    var targets = battleContext.enemies.Where(u=>!u.isDead);
                                     foreach(var t in targets)
                                     {
                                         EffectPipeline.ApplyEffectPacket(t, new EffectEvent
@@ -542,7 +560,8 @@ public class TurnGameManager : MonoBehaviour
                             
                             case TargetType.AllyAll:
                                 {
-                                    var targets = allies.Where(u => !u.isDead);
+                                    //var targets = allies.Where(u => !u.isDead);
+                                    var targets = battleContext.allies.Where(u=>!u.isDead);
                                     foreach(var t in targets)
                                     {
                                         EffectPipeline.ApplyEffectPacket(t,new EffectEvent
@@ -590,7 +609,8 @@ public class TurnGameManager : MonoBehaviour
                         break;
                     
                     case TargetType.AllyAll:
-                        var targets = allies.Where(u=>!u.isDead);
+                        //var targets = allies.Where(u=>!u.isDead);
+                        var targets = battleContext.allies.Where(u=>!u.isDead);
                         foreach(var t in targets)
                         {
                             subDmg = support.CalcDamage(t);
@@ -605,7 +625,8 @@ public class TurnGameManager : MonoBehaviour
                         break;
                     
                     case TargetType.EnemyAll:
-                        var tar = enemies.Where(u=>!u.isDead);
+                        //var tar = enemies.Where(u=>!u.isDead);
+                        var tar = battleContext.enemies.Where(u=>!u.isDead);
                         foreach(var t in tar)
                         {
                             subDmg = support.CalcDamage(t);
@@ -629,68 +650,62 @@ public class TurnGameManager : MonoBehaviour
         }
     }
 
-    private List<BattleUnit> AttackRangeTargets(BattleUnit user)
+    public bool ExecuteAIAction(BattleUnit unit, AIAction action)
     {
-        List<BattleUnit> source = user.team == TeamType.Ally? enemies:allies;
-        var candidates = source.Where(u=>!u.isDead).ToList();
-        return candidates;
-    }
+        if(action.target == null) return false;
 
-    // 플레이어의 스킬 타겟 설정
-    private List<BattleUnit> SkillRangeTargets(BattleUnit user, SkillData skill)
-    {
-        List<BattleUnit> source = null;
-        bool isAllyteam = user.team == TeamType.Ally;
+        var target = action.target;
 
-        switch (skill.targetType)
+        if (string.IsNullOrEmpty(action.skillID))
         {
-            case TargetType.EnemySingle:
-            case TargetType.EnemyAll:
-                source = isAllyteam? enemies:allies;
-                break;
-
-            case TargetType.AllySingle:
-            case TargetType.AllyAll:
-                source = isAllyteam? allies:enemies;
-                break;
-
-            case TargetType.Self:
-                return new List<BattleUnit>{user};
+            unit.Attack(target);
+            unit.UseMainAction();
+            Debug.Log($"{unit.name}이 {target.name}을 향해 Attack 공격");
+            return true;
         }
-
-        var candidates = source.Where(u=>!u.isDead).ToList();
-
-        return candidates;
-    }
-
-    public List<BattleUnit> DefenseRangeTarget(BattleUnit user)
-    {
-        return new List<BattleUnit>{user};
-    }
-
-    public List<BattleUnit> ItemRangeTarget(BattleUnit user, ItemData item)
-    {
-        List<BattleUnit> source = null;
-        bool isAllyteam = user.team == TeamType.Ally;
-
-        switch (item.target)
+        else
         {
-            case TargetType.EnemySingle:
-            case TargetType.EnemyAll:
-                source =isAllyteam? enemies:allies;
-                break;
-            
-            case TargetType.AllySingle:
-            case TargetType.AllyAll:
-                source = isAllyteam? allies:enemies;
-                break;
-            
-            case TargetType.Self:
-                return new List<BattleUnit>{user};
+            if(!dataManager.skillDatas.TryGetValue(action.skillID, out var skill))
+            {
+                Debug.LogWarning($"skilldata에 {action.skillID} 가 없음");
+                return false;
+            }
+
+            unit.ConsumeSkillCost(skill);
+            float power = unit.CalcSkillRealDamage(skill);
+
+            switch (skill.targetType)
+            {
+                case TargetType.AllySingle:
+                case TargetType.EnemySingle:
+                case TargetType.Self:
+                    unit.TakeDamage(target,skill,power);
+                    Debug.Log($"{unit.name}이 {target.name}을 향해 skill 공격");
+                    break;
+                
+                case TargetType.AllyAll:
+                    {
+                        var targets = battleContext.enemies.Where(u=>!u.isDead);
+                        foreach(var t in targets)
+                        {
+                            unit.TakeDamage(t,skill,power);
+                        }
+                        break;
+                    }
+                
+                case TargetType.EnemyAll:
+                    {
+                        var targets = battleContext.allies.Where(u=>!u.isDead);
+                        foreach(var t in targets)
+                        {
+                            unit.TakeDamage(t,skill,power);
+                        }
+                        break;
+                    }
+            }
+            unit.UseMainAction();
+            return true;
         }
-        var candidates = source.Where(u=>!u.isDead).ToList();
-        
-        return candidates;
     }
 
     public void OnPlayerSelectCommand(BattleCommandType cmd, SkillData skill = null, ItemData item = null)
@@ -701,7 +716,7 @@ public class TurnGameManager : MonoBehaviour
         {
             case BattleCommandType.Attack:
                 {
-                    var candidates = AttackRangeTargets(currentUnit);
+                    var candidates = battleContext.AttackRangeTargets(currentUnit);
                     uiManager.EnterTargetSelectMode(candidates, (target) =>
                     {
                         command = cmd;
@@ -714,7 +729,7 @@ public class TurnGameManager : MonoBehaviour
                 
             case BattleCommandType.Skill:
                 {
-                    var candidates = SkillRangeTargets(currentUnit,skill);
+                    var candidates = battleContext.SkillRangeTargets(currentUnit,skill);
                     uiManager.EnterTargetSelectMode(candidates, (target) =>
                     {
                         command = cmd;
@@ -727,7 +742,7 @@ public class TurnGameManager : MonoBehaviour
             
             case BattleCommandType.Defend:
                 {
-                    var candidates = DefenseRangeTarget(currentUnit);
+                    var candidates = battleContext.DefenseRangeTarget(currentUnit);
                     uiManager.EnterTargetSelectMode(candidates, (target) =>
                     {
                         command = cmd;
@@ -740,7 +755,7 @@ public class TurnGameManager : MonoBehaviour
             
             case BattleCommandType.Item:
                 {
-                    var candidates = ItemRangeTarget(currentUnit, item);
+                    var candidates = battleContext.ItemRangeTarget(currentUnit, item);
                     uiManager.EnterTargetSelectMode(candidates, (target) =>
                     {
                         command = cmd;
@@ -755,7 +770,7 @@ public class TurnGameManager : MonoBehaviour
             case BattleCommandType.Support:
                 {
                     if(support == null) return;
-                    var candidates = SkillRangeTargets(currentUnit,support.supportSkill);
+                    var candidates = battleContext.SkillRangeTargets(currentUnit,support.supportSkill);
                     uiManager.EnterTargetSelectMode(candidates, (target) =>
                     {
                         command = cmd;

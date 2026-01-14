@@ -22,7 +22,7 @@ public class SupportUnit
     public PassiveRuntime passiveRuntime;
     public int cooldown;
 
-    public static SupportUnit TryCreat(PlayerData pc, DataManager dm)
+    public static SupportUnit TryCreate(PlayerData pc, DataManager dm)
     {
         var select = pc.selectedSupport;
         if(select == null || string.IsNullOrEmpty(select.supportID))
