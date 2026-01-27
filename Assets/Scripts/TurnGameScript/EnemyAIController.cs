@@ -21,8 +21,16 @@ public class EnemyAIController
     }
 }
 
+public enum AICommandType
+{
+    Attack,
+    Skill,
+    Defend
+}
+
 public struct AIAction
 {
+    public AICommandType commandType;
     public string skillID;
     public BattleUnit target;
 }

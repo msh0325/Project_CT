@@ -16,6 +16,7 @@ public class DataManager : MonoBehaviour
     public Dictionary<string, SupportData> supportData = new();
     public Dictionary<string, ItemData> itemData = new();
     public Dictionary<string,Passive> passiveData = new();
+    public Dictionary<string,EnemyAIProfile> aiProfileData = new();
 
     void Awake()
     {
@@ -54,5 +55,30 @@ public class DataManager : MonoBehaviour
 
         // itemPassive 불러오기
         csvReader.ReadPassiveCSV(passiveData);
+
+        // AIProfiles 불러오기
+        LoadAIProfiles();
+    }
+
+    private void LoadAIProfiles()
+    {
+        aiProfileData.Clear();
+
+        var profiles = Resources.LoadAll<EnemyAIProfile>("AIProfiles");
+        foreach(var p in profiles)
+        {
+            if (!aiProfileData.ContainsKey(p.name))
+            {
+                aiProfileData.Add(p.name, p);
+            }
+        }
+    }
+
+    public EnemyAIProfile GetAIProfile(string key)
+    {
+        if(aiProfileData.TryGetValue(key, out var p)) return p;
+
+        Debug.LogWarning($"AIProfileData에 {key} 없음.");
+        return aiProfileData["Basic"];
     }
 }

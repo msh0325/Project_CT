@@ -172,6 +172,7 @@ public class TurnGameManager : MonoBehaviour
                     nowUnit.OnTurnStart();
                     while (!isActionDone)
                     {
+                        if(nowUnit.isDead) break;
                         uiManager.skillUIPannel.CheckCanUseSkill(nowUnit);
                         uiManager.CheckCanUseSupport(support,nowUnit);
                         isPlayerChecked = true;
@@ -194,6 +195,7 @@ public class TurnGameManager : MonoBehaviour
                             breakRound = true;
                             break;
                         }
+                        yield return null;
                     }
                 }
                 else
@@ -204,7 +206,8 @@ public class TurnGameManager : MonoBehaviour
                     nowUnit.OnTurnStart();
                     while(!isActionDone)
                     {
-                        AIAction action = enemyAI.DecideAction(nowUnit, battleContext);
+                        if(nowUnit.isDead) break;
+                        AIAction action = nowUnit.profile.Decide(nowUnit, battleContext);
                         isActionDone = ExecuteAIAction(nowUnit, action);
                         foreach(var ui in uis) ui.Refresh();
 
@@ -220,6 +223,7 @@ public class TurnGameManager : MonoBehaviour
                             breakRound = true;
                             break;
                         }
+                        yield return null;
                     }
                 }
                 uiManager.HidePlayerUI();    

@@ -41,7 +41,7 @@ public class CSVReader : MonoBehaviour
 
             string[] cols = line.Split(',');
 
-            if(cols.Length < 10)
+            if(cols.Length < 11)
             {
                 Debug.LogWarning("CharacterData 컬럼 개수 부족");
                 continue;
@@ -64,7 +64,8 @@ public class CSVReader : MonoBehaviour
                 attack = int.Parse(cols[6]),
                 defense = int.Parse(cols[7]),
                 critical = float.Parse(cols[8]),
-                skillID = cols[9].Split('/',StringSplitOptions.RemoveEmptyEntries)
+                skillID = cols[9].Split('/',StringSplitOptions.RemoveEmptyEntries),
+                aiProfileKey = cols[10]
             };
 
             if(!saveFile.ContainsKey(stat.characterID))

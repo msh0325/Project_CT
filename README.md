@@ -20,9 +20,12 @@
 
   > passive에 trigger가 afteraction이나 afterdamagetaken일 때 applyNextround가 1이 됨. (다음 턴에 패시브 적용)
   아마 나중에 trigger가 더 세분화 될지도 모름.
+
  3. 적 AI 만들기(최소 패턴 > 패턴/가중치 확장)
   > EnemyAIController 에서 적 AI 관리. 
   > 당장은 랜덤한 타겟, Attack만 작동.
+  > Scriptable로 ai 틀 만들고, 유닛마다 다른 우선순위를 가지게 함. (enemydata에서 ai 지정 필요)
+  > 당장은 랜덤 / hp 낮은 애 / 공격력 젤 높은애 세개의 패턴 중 랜덤만 구현했음. 나중에 여러 패턴을 만들고 구현 필요.
  4. 공격/방어 개성 기획하기
 
  Effectdata >> 지금 itemeffect 때문에 effect를 적용하는 함수를 override해서 itemeffect의 값으로 변경하게 만들었음. (기본은 5데미지지만, itemeffect에서 3데미지면 3으로 덮어씌우고 적용) 나중에 단순히 effect 값만 다르다던가, duration만 다르다던가 등 수치만 다른 effect가 필요하다면, effectdata를 하나 만드는게 아닌, override 해서 적용할 수 있도록 해야함. 아마 다른 애들은 거의 포함되지는 않겠지만, 다른 데이터도 이런 방식이 적용될 수 있다면, 그렇게 바꾸는게 데이터 양 적어져서 좋음.

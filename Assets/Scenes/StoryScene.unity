@@ -2411,9 +2411,15 @@ MonoBehaviour:
   nowSelectStageID: TEST_ST01
   itemBox:
   - itemID: TEST_IT02
+    maxStack: 0
     stack: 2
+    cooltime: 0
+    nowCooltime: 0
   - itemID: TEST_IT04
+    maxStack: 0
     stack: 1
+    cooltime: 0
+    nowCooltime: 0
 --- !u!4 &1557864987
 Transform:
   m_ObjectHideFlags: 0

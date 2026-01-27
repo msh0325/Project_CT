@@ -14,6 +14,7 @@ public class CharacterStat // 캐릭터 기본 세팅
     public int defense {get;set;}
     public float critical {get;set;}
     public string[] skillID {get;set;}
+    public string aiProfileKey {get;set;}
 }
 
 [Serializable]

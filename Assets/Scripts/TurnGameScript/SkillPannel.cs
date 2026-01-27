@@ -9,6 +9,7 @@ public class SkillPannel : MonoBehaviour
     private Button[] skillButtons;
     private SkillData[] skills;
     [SerializeField] private GameObject btnPrefab;
+    private SkillButton btn;
     void Start()
     {
         gm = TurnGameManager.instance;
@@ -53,19 +54,22 @@ public class SkillPannel : MonoBehaviour
     {
         for(int i = 0; i < skillButtons.Length; i++)
         {
+            btn = skillButtons[i].GetComponent<SkillButton>();
             if(!unit.CanUseSkill(skills[i].skillID))
             {
-                skillButtons[i].interactable = false;
+                //skillButtons[i].interactable = false;
                 int cooltime = unit.GetSkillCoolTime(skills[i]);
                 if(cooltime > 0)
                 {
-                    skillButtons[i].GetComponentInChildren<TMP_Text>().text = cooltime.ToString();
+                    //skillButtons[i].GetComponentInChildren<TMP_Text>().text = cooltime.ToString();
+                    btn.SetCooltime(true, cooltime);
                 }
             }
             else
             {
-                skillButtons[i].interactable = true;
-                skillButtons[i].GetComponentInChildren<TMP_Text>().text = skills[i].skillName;
+                btn.SetCooltime(false,0);
+                //skillButtons[i].interactable = true;
+                //skillButtons[i].GetComponentInChildren<TMP_Text>().text = skills[i].skillName;
             }
         }
     }

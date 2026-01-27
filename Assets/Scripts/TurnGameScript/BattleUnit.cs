@@ -14,6 +14,7 @@ public class BattleUnit
 {
     public CharacterStat baseStat;
     public TeamType team;
+    public EnemyAIProfile profile; // 적 ai
 
     public string name;
     public int baseAttack;
@@ -75,6 +76,8 @@ public class BattleUnit
         name = stat.name;
         pcCharStat = bonusStat;
         partyChar = partyMem;
+
+        profile = team == TeamType.Ally? null : DataManager.instance.GetAIProfile(stat.aiProfileKey);
 
         bool isBonusNull = bonusStat == null;
         baseAttack = stat.attack + (isBonusNull? 0 : bonusStat.bonusAttack);
