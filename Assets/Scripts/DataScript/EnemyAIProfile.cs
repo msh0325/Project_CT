@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public abstract class EnemyAIProfile : ScriptableObject
@@ -10,4 +11,13 @@ public enum AITargetPolicy
     Random,
     LowestHP,
     HightestAttack
+}
+
+[Serializable]
+public class AIPhase
+{
+    public float hpRate;
+    public float attackWeight;
+    public float skillWeight;
+    public float defendWeight;
 }
