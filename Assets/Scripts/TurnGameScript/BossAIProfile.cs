@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "AI/Boss AI")]
@@ -24,6 +23,12 @@ public class BossAIProfile : EnemyAIProfile
     [Header("타겟 우선순위")]
     public AITargetPolicy targetPolicy = AITargetPolicy.LowestHP;
 
+    private void OnEnable()
+    {
+        isPhase2 = false;
+        bossTurnCount = 0;
+    }
+
     public override AIAction Decide(BattleUnit self, BattleContext ctx)
     {
         bossTurnCount++;
@@ -32,6 +37,7 @@ public class BossAIProfile : EnemyAIProfile
         {
             isPhase2 = true;
             // 2페이즈 이후 달라지는 부분 수정
+            Debug.Log("2phase start");
         }
 
         if(bossTurnCount % fixedPattern == 0 && self.CanUseSkill(patternSkillID))
@@ -91,7 +97,6 @@ public class BossAIProfile : EnemyAIProfile
                 if(s.Key == patternSkillID) continue;
                     
                 usable.Add(s.Value);
-                Debug.Log(s.Key);
             }
         }
 

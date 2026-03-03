@@ -12,9 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e2800a379a56b564ca62d33a67d99714, type: 3}
   m_Name: TestBoss01AI
   m_EditorClassIdentifier: 
+  bonusMainAction: 1
+  bonusSubAction: 0
   attackWeigt: 0
-  skillWeight: 0
+  skillWeight: 100
   defendWeight: 0
-  changePhaseHPRate: 0
-  fixedPattern: 0
+  changePhaseHPRate: 0.9
+  fixedPattern: 3
+  patternSkillID: TEST_BS_SK04
   targetPolicy: 1

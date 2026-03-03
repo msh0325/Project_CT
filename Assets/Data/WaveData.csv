@@ -1,3 +1,4 @@
-Stage_ID,WaveIndex,Enemy_ID,EnemyCount,EneyRow
-TEST_ST01,1,TEST_02,2,Front/Back
-TEST_ST01,2,TEST_02/TEST_03,2/1,Front/Back/Middle
+Stage_ID,WaveIndex,Enemy_ID,EnemyCount,EneyRow,BossWawve
+TEST_ST01,1,TEST_02,2,Front/Back,
+TEST_ST01,2,TEST_02/TEST_03,2/1,Front/Back/Middle,
+TEST_ST02,1,TEST_BS_01,1,Middle,True

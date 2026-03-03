@@ -80,6 +80,8 @@ public class BattleUnit
         profile = team == TeamType.Ally? null : DataManager.instance.GetAIProfile(stat.aiProfileKey);
 
         bool isBonusNull = bonusStat == null;
+        bool isProfileNull = profile == null;
+
         baseAttack = stat.attack + (isBonusNull? 0 : bonusStat.bonusAttack);
         baseDefense = stat.defense + (isBonusNull? 0 : bonusStat.bonusDefense);
         baseCritical = stat.critical + (isBonusNull? 0: bonusStat.bonusCritical);
@@ -91,8 +93,23 @@ public class BattleUnit
         currentHP = baseMaxHP;
         currentMP = baseMaxMP;
 
-        mainActionCount = BaseMainAction + (isBonusNull ? 0 : bonusStat.bonusMainAction);
-        subActionCount = BaseSubAction + (isBonusNull ? 0 : bonusStat.bonusSubAction);   
+        int bonusMain = 0;
+        int bonusSub = 0;
+
+        if(!isBonusNull)
+        {
+            bonusMain = bonusStat.bonusMainAction;
+            bonusSub =  bonusStat.bonusSubAction;
+        }
+        else if(!isProfileNull)
+        {
+            bonusMain =  profile.bonusMainAction;
+            bonusSub = profile.bonusSubAction;
+        }
+
+        mainActionCount = BaseMainAction + bonusMain;
+        subActionCount = BaseSubAction + bonusSub;
+
         leftMainAction = mainActionCount;
         leftSubAction = subActionCount;
         row = rowType;

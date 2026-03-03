@@ -320,7 +320,7 @@ public class CSVReader : MonoBehaviour
 
             string[] cols = line.Split(',');
 
-            if(cols.Length < 5)
+            if(cols.Length < 6)
             {
                 Debug.LogWarning($"wave 컬럼 개수 부족 line : {line}");
                 continue;
@@ -360,6 +360,12 @@ public class CSVReader : MonoBehaviour
                 Debug.LogWarning($"enemyCount랑 enemyRow 수 불일치 : {rows.Length} / {enemyCount}\n"
                 + $"wave index : {cols[1]}");
             }
+
+            bool boss = false;
+            if(!string.IsNullOrEmpty(cols[5]))
+            {
+                boss =true;
+            }
             
             WaveData data = new WaveData
             {
@@ -367,7 +373,8 @@ public class CSVReader : MonoBehaviour
                 waveIndex = int.Parse(cols[1]),
                 enemyID = enemyid,
                 enemyCount = counts,
-                enemyRow = rows
+                enemyRow = rows,
+                isBoss = boss
             };
 
             if(!saveFile.TryGetValue(data.stageID,out var list))

@@ -13,4 +13,5 @@ public class WaveData
     public string[] enemyID {get;set;}
     public int[] enemyCount {get;set;}
     public RowType[] enemyRow;
+    public bool isBoss;
 }
