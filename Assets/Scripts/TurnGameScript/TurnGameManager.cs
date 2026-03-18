@@ -144,6 +144,7 @@ public class TurnGameManager : MonoBehaviour
             {
                 currentTurnIndex = i;
                 BattleUnit nowUnit = turnOrder[currentTurnIndex];
+                RefreshTurnIndicators();
 
                 // 턴 시작 전에 게임 종료 체크
                 if(CheckBattleOver())
@@ -790,6 +791,19 @@ public class TurnGameManager : MonoBehaviour
     public void DeleteUIList(BattleUI ui)
     {
         uis.Remove(ui);
+    }
+
+    public void RefreshTurnIndicators()
+    {
+        BattleUnit next = (currentTurnIndex < turnOrder.Count -1)? turnOrder[currentTurnIndex+1]:null;
+
+        foreach(var unit in turnOrder)
+        {
+            bool isCurrent = unit == currentUnit;
+            bool isNext = unit == next;
+
+            unit.SetTurnStatus(isCurrent, isNext);
+        }
     }
 }
 

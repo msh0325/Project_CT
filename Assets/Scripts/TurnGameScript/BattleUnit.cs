@@ -163,6 +163,14 @@ public class BattleUnit
         }  
     }
 
+    // 현재 턴 / 다음 턴 표시용 이벤트. 추후에 턴 시작 이펙트나 애니메이션 표시 할 때도 사용 할지도
+    public Action<bool, bool> OnTurnStateChange;
+
+    public void SetTurnStatus(bool isCurrent, bool isNext)
+    {
+        OnTurnStateChange?.Invoke(isCurrent, isNext);
+    }
+
     public void OnTurnStart()
     {
         leftMainAction = mainActionCount;
