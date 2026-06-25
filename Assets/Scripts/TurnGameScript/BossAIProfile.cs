@@ -5,11 +5,6 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "AI/Boss AI")]
 public class BossAIProfile : EnemyAIProfile
 {
-    [Header("공격 / 스킬 / 방어 가중치")]
-    public float attackWeigt;
-    public float skillWeight;
-    public float defendWeight;
-
     [Header("보스 페이즈 변환 HP / 일정 턴마다 패턴고정")]
     public float changePhaseHPRate;
     public int fixedPattern;
@@ -20,8 +15,8 @@ public class BossAIProfile : EnemyAIProfile
     private int bossTurnCount = 0;
     private bool isPhase2 = false;
 
-    [Header("타겟 우선순위")]
-    public AITargetPolicy targetPolicy = AITargetPolicy.LowestHP;
+    [Header("2페이즈 변경점")]
+    public AIPhase phase2;
 
     private void OnEnable()
     {
@@ -38,6 +33,10 @@ public class BossAIProfile : EnemyAIProfile
             isPhase2 = true;
             // 2페이즈 이후 달라지는 부분 수정
             Debug.Log("2phase start");
+            attackWeight = phase2.attackWeight;
+            skillWeight = phase2.skillWeight;
+            defendWeight = phase2.defendWeight;
+            fixedPattern = phase2.fixedPattern;
         }
 
         if(bossTurnCount % fixedPattern == 0 && self.CanUseSkill(patternSkillID))
@@ -50,7 +49,7 @@ public class BossAIProfile : EnemyAIProfile
                 target = DecideTarget(self,ctx,AICommandType.Skill, s)
             };
         }
-        AICommandType cmd = DecidecommandType();
+        AICommandType cmd = DecideCommandType();
 
         SkillData skill = null;
         if(cmd == AICommandType.Skill)
@@ -71,20 +70,7 @@ public class BossAIProfile : EnemyAIProfile
         };
     }
 
-    AICommandType DecidecommandType()
-    {
-        float total = attackWeigt + skillWeight + defendWeight;
-        float rnd = Random.Range(0, total);
-
-        if(rnd < attackWeigt) return AICommandType.Attack;
-        rnd -= attackWeigt;
-        
-        if(rnd < skillWeight) return AICommandType.Skill;
-
-        return AICommandType.Defend;
-    }
-
-    SkillData DecideSkill(BattleUnit self)
+    protected override SkillData DecideSkill(BattleUnit self)
     {
         if(self.skills == null || self.skills.Count == 0) return null;
 
@@ -103,33 +89,5 @@ public class BossAIProfile : EnemyAIProfile
         if(usable.Count == 0) return null;
 
         return usable[Random.Range(0,usable.Count)];
-    }
-
-    BattleUnit DecideTarget(BattleUnit self, BattleContext ctx, AICommandType cmd, SkillData skill = null)
-    {
-        List<BattleUnit> targets;
-
-        if(cmd == AICommandType.Skill && skill != null)
-        {
-            targets = ctx.SkillRangeTargets(self,skill);
-        }
-        else
-        {
-            targets = ctx.AttackRangeTargets(self);
-        }
-
-        if(targets == null || targets.Count == 0) return null;
-
-        switch(targetPolicy)
-        {
-            case AITargetPolicy.LowestHP:
-                return targets.OrderBy(t=>t.currentHP).First();
-            
-            case AITargetPolicy.HightestAttack:
-                return targets.OrderByDescending(t=>t.attack).First();
-            
-            default:
-                return targets[Random.Range(0,targets.Count)];
-        }
     }
 }
