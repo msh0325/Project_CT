@@ -14,3 +14,5 @@ TEST_BS_SK02,테스트보스힐,0.8,1.2,1.1,10,4,Heal,AllySingle,Front/Middle/Ba
 TEST_BS_SK03,테스트보스전체,0.7,1.0,1.2,20,3,Damage,EnemyAll,Front/Middle/Back,
 TEST_BS_SK04,테스트보스강력일격,1.2,1.3,1.15,30,3,Damage,EnemySingle,Front/Middle,
 TEST_BS_SK05,테스트보스전체독,0.6,0.9,1.1,15,4,Damage,EnemyAll,Front/Middle/Back,EF_POISON
+TEST_SK09,테스트스턴,0,0,0,10,3,Damage,EnemySingle,Front/Middle/Back,EF_STUN
+TEST_SK10,테스트빙결,0.8,0.9,1,15,3,Damage,EnemySingle,Front/Middle/Back,EF_FREEZE/EF_FREEZE_SPDDOWN

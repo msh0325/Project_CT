@@ -47,9 +47,9 @@ public enum EffectType
     StatDebuff,
     Bleed, // 턴 시작시 데미지
     Poison, // 턴 종료시 데미지, 마나 감소
-    Freeze, // 다음 턴 속도 감소
+    Freeze, // 다음 턴 속도 감소, 풀릴 때 데미지?
     Burn, // 턴 시작시 데미지, 방어력 감소
-    Stun, // 턴을 제일 마지막으로 미룸
+    Stun, // 하덩 턴 행동 불가
     Clean, // 상태이상 지우기 (즉발)
     Heal, // 체력 회복 (즉발)
     RecovoryMP, // mp 회복 (즉발)

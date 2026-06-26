@@ -345,6 +345,20 @@ public class BattleUnit
         return mul;
     }
 
+    // freeze 걸렸을 때 받는 데미지 증가 체크용
+    // public float CheckDamageAmp()
+    // {
+    //     float mul = 1f;
+    //     foreach(var e in activeEffects)
+    //     {
+    //         if(e.data.type != EffectType.Freeze) continue;
+    //         Debug.Log("빙결로 인해 받피뎀 증가");
+    //         mul = Mathf.Max(mul, e.data.statmul);
+    //     }
+    //     return mul;
+    // }
+
+
     private void StartCoolDown(SkillData skill)
     {
         if(skill.coolTime >= 0)
@@ -454,7 +468,12 @@ public class BattleUnit
                 break;
             
             case EffectType.Freeze:
+                // checkdamageamp 로 받는 데미지 증가 처리. 속도 느려짐은 따로 calcbuff에서 처리
+                Debug.Log($"{name}가 {e.data.type} 얻음. 속도 느려짐. 받는 데미지 증가. 남은 턴수 {e.duration}");
+                break;
             case EffectType.Stun:
+                leftMainAction = 0;
+                Debug.Log($"{name}가 {e.data.type} 얻음. 턴 스킵. 남은 턴수 {e.duration}");
                 break;
             
             case EffectType.Heal:

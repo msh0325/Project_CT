@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -40,6 +41,8 @@ public class TurnGameManager : MonoBehaviour
     private bool isBattleEnd = false;
     private bool isWaveEnd = false;
     private System.Random rnd = new ();
+    private int nowWave = 0;
+    public TMP_Text testWaveText;
 
     public EnemyAIController enemyAI = new EnemyAIController();
 
@@ -116,6 +119,7 @@ public class TurnGameManager : MonoBehaviour
             // 전투 참여 캐릭터 속도 굴림 후 속도 순 정렬하기
             state = BattleState.RoundStart;
             bool breakRound = false;
+            // 전투 시작 시 effect 체크
             foreach(var u in turnOrder)
             {
                 u.CheckEffect(state);
@@ -135,6 +139,9 @@ public class TurnGameManager : MonoBehaviour
 
             RollUnitSpeed();
             support?.TickCoolDown();
+            // 임시 wave 표시
+            nowWave++;
+            testWaveText.text = nowWave.ToString();
             foreach(var item in pcDataManager.itemBoxMap)
             {
                 item.Value.TickCoolDown();
@@ -156,77 +163,84 @@ public class TurnGameManager : MonoBehaviour
                 state = BattleState.TurnStart;
                 if(nowUnit.team == TeamType.Ally && support != null) support.passiveRuntime?.UpdatePassive(nowUnit,state);
                 // 턴 진행중 죽었으면 다음 순서
-                if(nowUnit.isDead) continue;                
+                if(nowUnit.isDead) continue;
                 // 4. 캐릭터 행동 대기. 플레이어의 주/부 행동 입력 or 적의 AI 입력 (state = RunTurn)
                 Debug.Log($"now {nowUnit.name}'s turn.");
+                nowUnit.OnTurnStart();
                 nowUnit.CheckEffect(state);
-                state = BattleState.RunTurn;
+
+                if(nowUnit.leftMainAction > 0)
+                {
+                    state = BattleState.RunTurn;
                 
-                nowUnit.TickCoolDown();
+                    nowUnit.TickCoolDown();
 
-                BattleUnit target = null;
+                    BattleUnit target = null;
 
-                if(nowUnit.team == TeamType.Ally)
-                {
-                    OnPlayerTurnStart?.Invoke(nowUnit);
-                    bool isActionDone = false;
-                    nowUnit.OnTurnStart();
-                    while (!isActionDone)
+                    if(nowUnit.team == TeamType.Ally)
                     {
-                        if(nowUnit.isDead) break;
-                        uiManager.skillUIPannel.CheckCanUseSkill(nowUnit);
-                        uiManager.CheckCanUseSupport(support,nowUnit);
-                        isPlayerChecked = true;
-
-                        yield return new WaitUntil(()=> isPlayerChecked == false);
-
-                        target = selectedTarget;
-                        isActionDone = ExecutePlayerCommand(nowUnit,target,command);
-                        foreach(var ui in uis) ui.Refresh();
-
-                        if (CheckBattleOver())
+                        OnPlayerTurnStart?.Invoke(nowUnit);
+                        bool isActionDone = false;
+                        //nowUnit.OnTurnStart();
+                        while (!isActionDone)
                         {
-                            state = BattleState.Idle;
-                            yield break;
-                        }
+                            if(nowUnit.isDead) break;
+                            uiManager.skillUIPannel.CheckCanUseSkill(nowUnit);
+                            uiManager.CheckCanUseSupport(support,nowUnit);
+                            isPlayerChecked = true;
 
-                        if (isWaveEnd)
-                        {
-                            isWaveEnd = false;
-                            breakRound = true;
-                            break;
+                            yield return new WaitUntil(()=> isPlayerChecked == false);
+
+                            target = selectedTarget;
+                            isActionDone = ExecutePlayerCommand(nowUnit,target,command);
+                            foreach(var ui in uis) ui.Refresh();
+
+                            if (CheckBattleOver())
+                            {
+                                state = BattleState.Idle;
+                                yield break;
+                            }
+
+                            if (isWaveEnd)
+                            {
+                                isWaveEnd = false;
+                                breakRound = true;
+                                break;
+                            }
+                            yield return null;
                         }
-                        yield return null;
+                    }
+                    else
+                    {
+                        // EnemyAIController에 따라 타겟과 액션 결정
+                        // 지금은 랜덤 타겟에 attack 만 작동
+                        bool isActionDone = false;
+                        //nowUnit.OnTurnStart();
+                        while(!isActionDone)
+                        {
+                            if(nowUnit.isDead) break;
+                            AIAction action = nowUnit.profile.Decide(nowUnit, battleContext);
+                            isActionDone = ExecuteAIAction(nowUnit, action);
+                            foreach(var ui in uis) ui.Refresh();
+
+                            if (CheckBattleOver())
+                            {
+                                state = BattleState.Idle;
+                                yield break;
+                            }
+
+                            if (isWaveEnd)
+                            {
+                                isWaveEnd = false;
+                                breakRound = true;
+                                break;
+                            }
+                            yield return null;
+                        }
                     }
                 }
-                else
-                {
-                    // EnemyAIController에 따라 타겟과 액션 결정
-                    // 지금은 랜덤 타겟에 attack 만 작동
-                    bool isActionDone = false;
-                    nowUnit.OnTurnStart();
-                    while(!isActionDone)
-                    {
-                        if(nowUnit.isDead) break;
-                        AIAction action = nowUnit.profile.Decide(nowUnit, battleContext);
-                        isActionDone = ExecuteAIAction(nowUnit, action);
-                        foreach(var ui in uis) ui.Refresh();
-
-                        if (CheckBattleOver())
-                        {
-                            state = BattleState.Idle;
-                            yield break;
-                        }
-
-                        if (isWaveEnd)
-                        {
-                            isWaveEnd = false;
-                            breakRound = true;
-                            break;
-                        }
-                        yield return null;
-                    }
-                }
+                else if(nowUnit.leftMainAction <=0) Debug.Log($"{nowUnit.name} 스턴으로 턴 스킵");
+                
                 uiManager.HidePlayerUI();    
 
                 // 5. 캐릭터 행동 종료. turnOrder에 남은 캐릭터 있으면 3번부터 시작 (state = TurnEnd)
@@ -799,6 +813,11 @@ public class TurnGameManager : MonoBehaviour
 
         foreach(var unit in turnOrder)
         {
+            if(unit.isDead)
+            {
+                unit.SetTurnStatus(false, false);
+                continue;
+            }
             bool isCurrent = unit == currentUnit;
             bool isNext = unit == next;
 

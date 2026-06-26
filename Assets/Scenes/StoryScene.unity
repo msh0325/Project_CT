@@ -2408,7 +2408,7 @@ MonoBehaviour:
     passiveSkillID: 
     attack: 0
     cast: 0
-  nowSelectStageID: TEST_ST02
+  nowSelectStageID: TEST_ST01
   itemBox:
   - itemID: TEST_IT02
     maxStack: 0
