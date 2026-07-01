@@ -1,4 +1,4 @@
-Effect_ID,Type,Timing,ApplyTIming,StackType,duration,damage,maxStack,maxDuration,Stat_Multiple,StatusType
+Effect_ID,Type,Timing,ApplyTiming,StackType,duration,damage,maxStack,maxDuration,Stat_Multiple,StatusType
 EF_01,Bleed,TurnStart,AfterTick,AddDamage,3,5,30,10,0,None
 EF_POISON,Poison,TurnEnd,AfterTick,AddDamage,4,3,30,10,0.08,None
 EF_03,StatBuff,RoundStart,AfterTick,ResetDuration,2,1,1,1,0,Speed
@@ -12,4 +12,4 @@ EF_SUPPORT_01,StatBuff,RoundStart,Immediate,None,-1,0,0,0,0.25,Attack
 EF_SUPPORT_TIMING,StatBuff,RoundStart,Immediate,None,-1,0,0,0,0.25,Defense
 EF_STUN,Stun,TurnStart,AfterTick,ResetDuration,1,0,0,2,0,None
 EF_FREEZE,Freeze,RoundStart,AfterTick,ResetDuration,2,0,0,2,1.15,None
-EF_FREEZE_SPDDOWN,StatDebuff,RoundStart,AfterTick,ResetDuration,1,-2,0,2,0,Speed
+EF_FREEZE_SPDDOWN,StatDebuff,RoundStart,Immediate,ResetDuration,2,-2,0,2,0,Speed

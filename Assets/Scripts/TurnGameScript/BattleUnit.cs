@@ -65,6 +65,7 @@ public class BattleUnit
 
     public void RollSpeed(System.Random rnd)
     {
+        Debug.Log($"{name} 최소 : {speed_min} 최대 : {speed_max}");
         currentSpeed = rnd.Next(speed_min,speed_max+1);
     }
 
@@ -500,8 +501,10 @@ public class BattleUnit
         bonusSpeed_max = 0;
         bonusSpeed_min = 0;
 
+        Debug.Log($"{name} CalcBuff 호출 - activeEffects 수: {activeEffects.Count}");
         foreach(var e in activeEffects)
         {
+            Debug.Log($"  effect: {e.data.effectID}, statEnable: {e.statEnable}, status: {e.data.status}");
             if(!e.statEnable) continue;
             if(e.data.status == StatusType.None) continue;
                
@@ -535,6 +538,7 @@ public class BattleUnit
                         int value = e.damage;
                         bonusSpeed_max += value;
                         bonusSpeed_min += value;
+                        Debug.Log($"{name} speed bonus : {value}, bonusMin:{bonusSpeed_min}, bonusMax:{bonusSpeed_max}");
                     }
                     break;
             }
