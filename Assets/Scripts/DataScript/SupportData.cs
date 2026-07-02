@@ -87,13 +87,11 @@ public class SupportUnit
         EffectData ed = new()
         {
             effectID = $"PASSIVE_" + data.supportID,
-            type = EffectType.StatBuff,
+            type = supportPassive.stat,
             timing = BattleState.RoundStart,
-            applyTiming = ApplyTiming.Immediate,
             stack = StackType.None,
             duration = -1,
-            statmul = supportPassive.value,
-            status = supportPassive.stat            
+            value = Mathf.RoundToInt(supportPassive.value)
         };
 
         PassiveRuntime pr = new()

@@ -5,10 +5,10 @@ public struct EffectEvent
 {
     public EffectData baseData;
     public int value;
-    public float mul;
     public int duration;
     public BattleUnit source;
 }
+
 public static class EffectPipeline
 {
     public static void ApplyEffectPacket(BattleUnit target, EffectEvent p)
@@ -18,36 +18,52 @@ public static class EffectPipeline
 
         var data = p.baseData;
         bool isImmediate = data.type == EffectType.Heal || data.type == EffectType.RecovoryMP || data.type == EffectType.Clean;
-        bool isStatEffect = data.status != StatusType.None;
+        bool isToken = IsTokenBased(data.type);
+
+        int resolvedDuration = (p.duration > 0) ? p.duration : data.duration;
+
+        // 토큰형이라도 duration <= 0이면 무한 지속(패시브 버프 등)으로 처리
+        bool useToken = isToken && resolvedDuration > 0;
 
         var ae = new ActiveEffect
         {
             data = data,
-            damage = (p.value != 0)? p.value:data.damage,
-            statMul = (p.mul != 0f)?p.mul:data.statmul,
-            duration = (p.duration > 0) ? p.duration : data.duration,
-            statEnable = data.applyTiming == ApplyTiming.Immediate,
-            token = data.type == EffectType.Guard? 1:0 // 토큰형 테스트용. 추후 수정 필요
+            value = (p.value != 0) ? p.value : data.value,
+            duration = useToken ? 0 : resolvedDuration,
+            token = useToken ? resolvedDuration : 0
         };
 
         if (isImmediate)
         {
             ae.duration = 0;
             target.TakeEffect(ae);
-
-            if(isStatEffect && ae.statEnable)
-            {
-                target.CalcBuff();
-            }
             return;
         }
 
         bool buffDirty = AddOrStack(target, ae);
-
-        if(isStatEffect && ae.statEnable) buffDirty = true;
-
         if(buffDirty) target.CalcBuff();
+
+        // 링크된 이펙트 자동 적용 (아직 없을 때만)
+        if(!string.IsNullOrEmpty(data.linkedEffectID))
+        {
+            bool alreadyLinked = target.activeEffects.Any(e => e.data.effectID == data.linkedEffectID);
+            if(!alreadyLinked && DataManager.instance.effectDatas.TryGetValue(data.linkedEffectID, out var linkedData))
+            {
+                ApplyEffectPacket(target, new EffectEvent { baseData = linkedData, source = p.source });
+            }
+        }
     }
+
+    public static bool IsTokenBased(EffectType t) =>
+        t == EffectType.ATKUp || t == EffectType.ATKDown ||
+        t == EffectType.DEFUp || t == EffectType.DEFDown ||
+        t == EffectType.SPDUp || t == EffectType.SPDDown ||
+        t == EffectType.Guard;
+
+    public static bool IsStatType(EffectType t) =>
+        t == EffectType.ATKUp || t == EffectType.ATKDown ||
+        t == EffectType.DEFUp || t == EffectType.DEFDown ||
+        t == EffectType.SPDUp || t == EffectType.SPDDown;
 
     public static bool AddOrStack(BattleUnit target, ActiveEffect ae)
     {
@@ -58,33 +74,27 @@ public static class EffectPipeline
         if(exist == null)
         {
             target.activeEffects.Add(ae);
-            bool dirty = ae.data.status != StatusType.None;
-            if(ae.data.type == EffectType.Guard) dirty = true;
-            return dirty;
+            return IsStatType(ae.data.type) || ae.data.type == EffectType.Guard;
         }
-
-        bool buffDirty = false;
 
         switch (exist.data.stack)
         {
-            case StackType.None: 
-                break;
-
             case StackType.ResetDuration:
-                exist.duration = ae.duration;
+                if(IsTokenBased(exist.data.type))
+                    exist.token = ae.token;
+                else
+                    exist.duration = ae.duration;
                 break;
 
             case StackType.AddDamage:
-                if(exist.damage < ae.data.maxDamage)
+                if(exist.value < ae.data.maxStack)
                 {
-                    exist.damage = Mathf.Min(exist.damage + Mathf.RoundToInt(ae.damage / 2),ae.data.maxDamage);
-                    exist.duration = Mathf.Min(exist.duration + Mathf.RoundToInt(ae.duration / 2), ae.data.maxDuration);
+                    exist.value = Mathf.Min(exist.value + Mathf.RoundToInt(ae.value / 2f), ae.data.maxStack);
+                    exist.duration = Mathf.Min(exist.duration + Mathf.RoundToInt(ae.duration / 2f), ae.data.maxDuration);
                 }
                 break;
         }
 
-        if(exist.data.status != StatusType.None) buffDirty = true;
-
-        return buffDirty;
+        return IsStatType(ae.data.type);
     }
 }

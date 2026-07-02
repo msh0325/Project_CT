@@ -1,12 +1,11 @@
 Skill_ID,Skill_Name,Random_Min,Random_Max,Multiplier,Use_MP,CoolTime,SkillType,TargetType,Range,EffectID
 TEST_SK01,테스트일격,1.0,1.2,1.2,15,0,Damage,EnemySingle,Front/Middle,
 TEST_SK02,테스트전체,0.7,1.1,1.4,30,3,Damage,EnemyAll,Front/Middle/Back,
-TEST_SK03,테스트출혈,0.9,1.2,1.1,12,2,Damage,EnemySingle,Back,EF_01
+TEST_SK03,테스트출혈,0.9,1.2,1.1,12,2,Damage,EnemySingle,Back,EF_BLEED
 TEST_SK04,테스트독,1.0,1.3,0.9,10,3,Damage,EnemySingle,Front/Middle,EF_POISON
 TEST_SK05,테스트힐,0.9,1.2,1,15,3,Heal,AllySingle,Front/Middle/Back,EF_HEAL
 TEST_SK06,테스트힐2,1.0,1.3,1,10,2,Heal,Self,Front/Middle/Back,EF_HEAL
-TEST_SK07,테스트화상,0.8,1.2,1.1,15,4,Damage,EnemySingle,Front,EF_05
-TEST_SK08,테스트버프1,1,1,1,10,2,Buff,AllyAll,Front/Middle/Back,EF_06
+TEST_SK07,테스트화상,0.8,1.2,1.1,15,4,Damage,EnemySingle,Front,EF_BURN
 TEST_SP01,액티브서포트,1.2,1.3,1,0,3,Damage,EnemyAll,Front/Middle/Back,
 TEST_SP02,패시브서포트,1,1,1.25,0,0,Buff,AllyAll,Front/Middle/Back,EF_SUPPORT_01
 TEST_BS_SK01,테스트보스독,0.8,1.1,1.2,15,2,Damage,EnemySingle,Front/Middle/Back,EF_POISON
@@ -16,3 +15,4 @@ TEST_BS_SK04,테스트보스강력일격,1.2,1.3,1.15,30,3,Damage,EnemySingle,Fr
 TEST_BS_SK05,테스트보스전체독,0.6,0.9,1.1,15,4,Damage,EnemyAll,Front/Middle/Back,EF_POISON
 TEST_SK09,테스트스턴,0,0,0,10,3,Damage,EnemySingle,Front/Middle/Back,EF_STUN
 TEST_SK10,테스트빙결,0.8,0.9,1,15,3,Damage,EnemySingle,Front/Middle/Back,EF_FREEZE/EF_FREEZE_SPDDOWN
+TEST_SK11,테스트데미지버프,0,0,0,20,3,Buff,Self,,EF_ATKUP

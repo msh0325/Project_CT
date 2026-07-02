@@ -7,5 +7,6 @@ public enum BattleState
     TurnStart, // 캐릭터 턴 시작, 턴 시작 상태이상 체크
     RunTurn, // 실제 행동 (스킬 선택 / AI / 연출)
     TurnEnd, // 캐릭터 턴 종료, 턴 종료 상태이상 체크
-    RoundEnd // 라운드 종료, 라운드 종료 상태이상 체크, 게임 승리/패배 조건 체크
+    RoundEnd, // 라운드 종료, 라운드 종료 상태이상 체크, 게임 승리/패배 조건 체크
+    Token // 토큰형 전용 - CheckEffect에서 절대 호출되지 않음. 전용 소모 메서드로만 처리
 }

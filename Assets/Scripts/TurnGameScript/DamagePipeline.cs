@@ -38,11 +38,12 @@ public static class DamagePipeline
             Debug.Log($"원래 데미지 {dmg}");
             dmg = Mathf.RoundToInt(ev.target.CheckDamageReduce() * dmg);
             Debug.Log($"받는 피해 감소 적용 데미지 {dmg}");
-            // dmg = Mathf.RoundToInt(ev.target.CheckDamageAmp() * dmg);
-            // Debug.Log($"받는 피해 증가 적용 데미지 {dmg}");
+            dmg = Mathf.RoundToInt(ev.target.CheckDamageAmp() * dmg);
+            Debug.Log($"받는 피해 증가 적용 데미지 {dmg}");
         }
 
         ev.target.currentHP = Mathf.Max(ev.target.currentHP - dmg, 0);
+        ev.target.ConsumeHitToken();
         passiveSystem?.NotifyTirgger(ev.target,PassiveTrigger.AfterDamageTaken, battleContext.currentRound);
         return dmg;
     }

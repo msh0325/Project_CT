@@ -26,7 +26,7 @@ public class Passive
     public CompareOP op;
     public float condition_value;
 
-    public StatusType stat;
+    public EffectType stat;
     public float value;
 
     public int applyNextRound; // 패시브를 다음 턴에 적용할지 체크용. 0은 즉시, 1은 다음 턴
@@ -68,7 +68,6 @@ public class PassiveRuntime
             {
                 baseData = passiveEffect,
                 value = 0,
-                mul = passiveEffect.statmul,
                 duration = -1,
                 source = null
             });
@@ -78,7 +77,7 @@ public class PassiveRuntime
             isActive = false;
             int removed = target.activeEffects.RemoveAll(e=> e.data != null && e.data.effectID == passiveEffect.effectID);
 
-            if(removed > 0 && passiveEffect.status != StatusType.None) target.CalcBuff();
+            if(removed > 0 && EffectPipeline.IsStatType(passiveEffect.type)) target.CalcBuff();
         }
     }
 
@@ -94,7 +93,6 @@ public class PassiveRuntime
             {
                 baseData = passiveEffect,
                 value = 0,
-                mul = passiveEffect.statmul,
                 duration = 1,
                 source = null
             });
@@ -139,7 +137,6 @@ public class PassiveRuntime
         {
             baseData = passiveEffect,
             value = 0,
-            mul = passiveEffect.statmul,
             duration = 1,
             source = null
         });

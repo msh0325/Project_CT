@@ -474,6 +474,7 @@ public class TurnGameManager : MonoBehaviour
             case BattleCommandType.Attack:
                 if(!unit.CanUseMainAction()) return true;
                 if(target != null) unit.Attack(target);
+                unit.ConsumeAttackToken();
                 unit.UseMainAction();
                 passiveSystem.NotifyTirgger(unit,PassiveTrigger.AfterAction, battleContext.currentRound);
                 return !unit.CanUseMainAction();
@@ -515,6 +516,7 @@ public class TurnGameManager : MonoBehaviour
                             break;
                         }
                 }
+                unit.ConsumeAttackToken();
                 unit.UseMainAction();
                 Debug.Log("use skill");
                 return !unit.CanUseMainAction();
@@ -553,7 +555,7 @@ public class TurnGameManager : MonoBehaviour
                                 {
                                     baseData = e,
                                     value = itemEffect.value,
-                                    mul = itemEffect.mul,
+
                                     duration = itemEffect.duration,
                                     source = unit
                                 });
@@ -569,7 +571,7 @@ public class TurnGameManager : MonoBehaviour
                                         {
                                             baseData = e,
                                             value = itemEffect.value,
-                                            mul = itemEffect.mul,
+        
                                             duration = itemEffect.duration,
                                             source = unit
                                         });
@@ -587,7 +589,7 @@ public class TurnGameManager : MonoBehaviour
                                         {
                                             baseData = e,
                                             value = itemEffect.value,
-                                            mul = itemEffect.mul,
+        
                                             duration = itemEffect.duration,
                                             source = unit
                                         });
@@ -678,6 +680,7 @@ public class TurnGameManager : MonoBehaviour
         if (string.IsNullOrEmpty(action.skillID))
         {
             unit.Attack(target);
+            unit.ConsumeAttackToken();
             unit.UseMainAction();
             Debug.Log($"{unit.name}이 {target.name}을 향해 Attack 공격");
             return true;
@@ -722,6 +725,7 @@ public class TurnGameManager : MonoBehaviour
                         break;
                     }
             }
+            unit.ConsumeAttackToken();
             unit.UseMainAction();
             return true;
         }

@@ -340,24 +340,63 @@ public class BattleUnit
         float mul = 1f;
         foreach(var e in activeEffects)
         {
-            if(e.data.type != EffectType.DamageReduce) continue;
-            mul = Mathf.Min(mul, e.data.statmul);
+            if(e.data.type != EffectType.DMGReduce) continue;
+            mul = Mathf.Min(mul, 1f - e.data.value * 0.01f);
         }
         return mul;
     }
 
-    // freeze 걸렸을 때 받는 데미지 증가 체크용
-    // public float CheckDamageAmp()
-    // {
-    //     float mul = 1f;
-    //     foreach(var e in activeEffects)
-    //     {
-    //         if(e.data.type != EffectType.Freeze) continue;
-    //         Debug.Log("빙결로 인해 받피뎀 증가");
-    //         mul = Mathf.Max(mul, e.data.statmul);
-    //     }
-    //     return mul;
-    // }
+    // freeze 피격 시 데미지 증가 적용 후 제거 (linkedEffectID로 SPDDown도 같이 제거)
+    public float CheckDamageAmp()
+    {
+        float mul = 1f;
+        bool dirty = false;
+        for(int i = activeEffects.Count - 1; i >= 0; i--)
+        {
+            var e = activeEffects[i];
+            if(e.data.type != EffectType.Freeze) continue;
+            Debug.Log("빙결로 인해 받피뎀 증가");
+            mul = Mathf.Max(mul, 1f + e.data.value * 0.01f);
+            activeEffects.RemoveAt(i);
+            RemoveLinkedEffect(e.data.linkedEffectID, ref dirty);
+        }
+        if(dirty) CalcBuff();
+        return mul;
+    }
+
+    private void RemoveLinkedEffect(string linkedID, ref bool buffDirty)
+    {
+        if(string.IsNullOrEmpty(linkedID)) return;
+        int removed = activeEffects.RemoveAll(e => e.data.effectID == linkedID);
+        if(removed > 0 && activeEffects.Any(e => EffectPipeline.IsStatType(e.data.type)))
+            buffDirty = true;
+    }
+
+    public void ConsumeAttackToken()
+    {
+        bool dirty = false;
+        for(int i = activeEffects.Count - 1; i >= 0; i--)
+        {
+            var e = activeEffects[i];
+            if(e.data.type != EffectType.ATKUp && e.data.type != EffectType.ATKDown) continue;
+            e.token--;
+            if(e.token <= 0) { activeEffects.RemoveAt(i); dirty = true; }
+        }
+        if(dirty) CalcBuff();
+    }
+
+    public void ConsumeHitToken()
+    {
+        bool dirty = false;
+        for(int i = activeEffects.Count - 1; i >= 0; i--)
+        {
+            var e = activeEffects[i];
+            if(e.data.type != EffectType.DEFUp && e.data.type != EffectType.DEFDown) continue;
+            e.token--;
+            if(e.token <= 0) { activeEffects.RemoveAt(i); dirty = true; }
+        }
+        if(dirty) CalcBuff();
+    }
 
 
     private void StartCoolDown(SkillData skill)
@@ -391,39 +430,36 @@ public class BattleUnit
     {
         bool buffDirty = false;
 
-        for(int i = activeEffects.Count-1 ; i >=0 ; i--)
+        for(int i = activeEffects.Count-1; i >= 0; i--)
         {
             var e = activeEffects[i];
 
             if(e.data.timing != timing) continue;
 
-            bool isInfinite = e.duration < 0;
-
             TakeEffect(e);
 
-            if(!e.statEnable && e.data.applyTiming == ApplyTiming.AfterTick && e.data.status != StatusType.None)
+            if(e.token > 0)
             {
-                e.statEnable = true;
-                buffDirty = true;
+                e.token--;
+                if(e.token <= 0)
+                {
+                    activeEffects.RemoveAt(i);
+                    RemoveLinkedEffect(e.data.linkedEffectID, ref buffDirty);
+                    if(EffectPipeline.IsStatType(e.data.type)) buffDirty = true;
+                }
             }
-
-            if (!isInfinite)
+            else if(e.duration >= 0) // duration < 0 = 무한
             {
                 e.duration--;
-
                 if(e.duration <= 0)
                 {
                     activeEffects.RemoveAt(i);
-                    if(e.data.status != StatusType.None && e.statEnable)
-                    {
-                        buffDirty = true;                    
-                    }
+                    RemoveLinkedEffect(e.data.linkedEffectID, ref buffDirty);
+                    if(EffectPipeline.IsStatType(e.data.type)) buffDirty = true;
                     continue;
                 }
             }
         }
-        // dirtyFlag 최적화 이용해 버프/디버프 갱신. 
-        // 항상 값을 초기화하고 갱신하는게 아니라, 값이 바뀌었을 때(적용 / 해제)만 갱신하는 방법.
         if(buffDirty) CalcBuff();
     }
 
@@ -433,64 +469,49 @@ public class BattleUnit
         {
             case EffectType.Bleed:
             case EffectType.Burn:
+                DamagePipeline.Apply(new DamageEvent
                 {
-                    int baseDmg = e.damage;
-                    DamagePipeline.Apply(new DamageEvent
-                    {
-                        target = this,
-                        amount = baseDmg,
-                        kind = DamageKind.Dot,
-                        allowDamageReduction = false
-                    });
-                    Debug.Log($"{name}가 {e.data.type} 데미지 입음 : {e.damage}, 남은 턴수 {e.duration}");
-                    break;
-                }
+                    target = this,
+                    amount = e.value,
+                    kind = DamageKind.Dot,
+                    allowDamageReduction = false
+                });
+                Debug.Log($"{name}가 {e.data.type} 데미지 입음 : {e.value}, 남은 턴수 {e.duration}");
+                break;
 
             case EffectType.Poison:
+                DamagePipeline.Apply(new DamageEvent
                 {
-                    int baseDmg = e.damage;
-                    DamagePipeline.Apply(new DamageEvent
-                    {
-                        target = this,
-                        amount = baseDmg,
-                        kind = DamageKind.Dot,
-                        allowDamageReduction = false
-                    });
-                    Debug.Log($"{name}가 {e.data.type} 데미지 입음 : {e.damage}, 남은 턴수 {e.duration}");
-                    int mpDMG = Mathf.RoundToInt(maxMP * e.statMul);
-                    currentMP = Mathf.Max(currentMP - mpDMG,0);
-                    Debug.Log($"{name}의 mp 감소 {currentMP}");
-                    break;
-                }
-                
-            case EffectType.StatBuff:
-            case EffectType.StatDebuff:
-                Debug.Log($"{name}가 {e.data.type} 얻음. 남은 턴수 {e.duration}");
+                    target = this,
+                    amount = e.value,
+                    kind = DamageKind.Dot,
+                    allowDamageReduction = false
+                });
+                Debug.Log($"{name}가 {e.data.type} 데미지 입음 : {e.value}, 남은 턴수 {e.duration}");
                 break;
-            
+
+            case EffectType.MPDrain:
+                currentMP = Mathf.Max(currentMP - e.data.value, 0);
+                Debug.Log($"{name} MP 감소 : {e.data.value}, 현재 MP {currentMP}");
+                break;
+
             case EffectType.Freeze:
-                // checkdamageamp 로 받는 데미지 증가 처리. 속도 느려짐은 따로 calcbuff에서 처리
                 Debug.Log($"{name}가 {e.data.type} 얻음. 속도 느려짐. 받는 데미지 증가. 남은 턴수 {e.duration}");
                 break;
+
             case EffectType.Stun:
                 leftMainAction = 0;
                 Debug.Log($"{name}가 {e.data.type} 얻음. 턴 스킵. 남은 턴수 {e.duration}");
                 break;
-            
+
             case EffectType.Heal:
-                {
-                    int value = e.damage;
-                    ApplyHeal(value);
-                    Debug.Log($"{name} : {value} 힐");
-                    break;
-                }
-                
+                ApplyHeal(e.value);
+                Debug.Log($"{name} : {e.value} 힐");
+                break;
+
             case EffectType.RecovoryMP:
-                {
-                    int value = e.damage;
-                    currentMP = Mathf.Min(currentMP + value, maxMP);
-                    break;
-                }
+                currentMP = Mathf.Min(currentMP + e.value, maxMP);
+                break;
         }
     }
 
@@ -501,45 +522,33 @@ public class BattleUnit
         bonusSpeed_max = 0;
         bonusSpeed_min = 0;
 
-        Debug.Log($"{name} CalcBuff 호출 - activeEffects 수: {activeEffects.Count}");
         foreach(var e in activeEffects)
         {
-            Debug.Log($"  effect: {e.data.effectID}, statEnable: {e.statEnable}, status: {e.data.status}");
-            if(!e.statEnable) continue;
-            if(e.data.status == StatusType.None) continue;
-               
-            float mul = e.statMul;
+            // 토큰형: token > 0 / 지속시간형: duration != 0 (duration=-1 = 무한)
+            bool isActive = e.token > 0 || e.duration != 0;
+            if(!isActive) continue;
 
-            switch (e.data.status)
+            switch(e.data.type)
             {
-                case StatusType.None:
+                case EffectType.ATKUp:
+                    attackBonus += Mathf.RoundToInt(baseAttack * e.data.value * 0.01f);
                     break;
-
-                case StatusType.Attack:
-                    {
-                        int value = Mathf.RoundToInt(baseAttack * mul);
-                        if(e.data.type != EffectType.StatBuff) value = -value;
-                        attackBonus += value;
-                        Debug.Log($"{name}'s attack {value} 증/감 : {attack}");
-                    }
+                case EffectType.ATKDown:
+                    attackBonus -= Mathf.RoundToInt(baseAttack * e.data.value * 0.01f);
                     break;
-
-                case StatusType.Defense:
-                    {
-                        int value = Mathf.RoundToInt(baseDefense * mul);
-                        if(e.data.type != EffectType.StatBuff) value = -value;
-                        defenseBonus += value;
-                        Debug.Log($"{name}'s defense {value} 증/감 : {defense}");
-                    }
+                case EffectType.DEFUp:
+                    defenseBonus += Mathf.RoundToInt(baseDefense * e.data.value * 0.01f);
                     break;
-
-                case StatusType.Speed:
-                    {
-                        int value = e.damage;
-                        bonusSpeed_max += value;
-                        bonusSpeed_min += value;
-                        Debug.Log($"{name} speed bonus : {value}, bonusMin:{bonusSpeed_min}, bonusMax:{bonusSpeed_max}");
-                    }
+                case EffectType.DEFDown:
+                    defenseBonus -= Mathf.RoundToInt(baseDefense * e.data.value * 0.01f);
+                    break;
+                case EffectType.SPDUp:
+                    bonusSpeed_min += e.data.value;
+                    bonusSpeed_max += e.data.value;
+                    break;
+                case EffectType.SPDDown:
+                    bonusSpeed_min += e.data.value; // value는 음수
+                    bonusSpeed_max += e.data.value;
                     break;
             }
         }

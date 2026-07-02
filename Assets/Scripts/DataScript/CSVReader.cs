@@ -184,7 +184,7 @@ public class CSVReader : MonoBehaviour
 
             string[] cols = line.Split(',');
 
-            if(cols.Length < 11)
+            if(cols.Length < 8)
             {
                 Debug.LogWarning("Effect 컬럼 개수 부족");
                 continue;
@@ -207,21 +207,9 @@ public class CSVReader : MonoBehaviour
                 continue;
             }
 
-            if(!Enum.TryParse<ApplyTiming>(cols[3],out var apply))
+            if(!Enum.TryParse<StackType>(cols[3],out var stackType))
             {
-                Debug.LogWarning($"applytiming 파싱 실패 : {cols[3]}(line:{line})");
-                continue;
-            }
-
-            if(!Enum.TryParse<StackType>(cols[4],out var stackType))
-            {
-                Debug.LogWarning($"stacktype 파싱 실패 : {cols[4]}(line:{line})");
-                continue;
-            }
-
-            if(!Enum.TryParse<StatusType>(cols[10],out var statusType))
-            {
-                Debug.LogWarning($"statustype 파싱 실패 : {cols[10]}(line:{line})");
+                Debug.LogWarning($"stacktype 파싱 실패 : {cols[3]}(line:{line})");
                 continue;
             }
 
@@ -230,14 +218,12 @@ public class CSVReader : MonoBehaviour
                 effectID = cols[0],
                 type = effectType,
                 timing = effectTiming,
-                applyTiming = apply,
                 stack = stackType,
-                duration = int.Parse(cols[5]),
-                damage = int.Parse(cols[6]),
-                maxDamage = int.Parse(cols[7]),
-                maxDuration = int.Parse(cols[8]),
-                statmul = float.Parse(cols[9]),
-                status = statusType
+                duration = int.Parse(cols[4]),
+                value = int.Parse(cols[5]),
+                maxStack = int.Parse(cols[6]),
+                maxDuration = int.Parse(cols[7]),
+                linkedEffectID = cols.Length > 8 ? cols[8].Trim() : string.Empty
             };
 
             if(!saveFile.ContainsKey(data.effectID))
@@ -591,7 +577,6 @@ public class CSVReader : MonoBehaviour
                     {
                         effectID = ItemEffectId(id),
                         value = int.Parse(v),
-                        mul = float.Parse(m),
                         duration = int.Parse(d)
                     };
 
@@ -805,7 +790,7 @@ public class CSVReader : MonoBehaviour
                 condition_value = float.Parse(token[(first+op_len+1)..].Trim());
             }
 
-            StatusType stat = StatusType.None;
+            EffectType stat = EffectType.ATKUp;
             float value = -1;
 
             if (!string.IsNullOrEmpty(cols[4]))
@@ -815,7 +800,7 @@ public class CSVReader : MonoBehaviour
                 int index = token.IndexOf(':');
 
                 string stat_text = token[..index].Trim().ToLowerInvariant();
-                stat = StringToStat(stat_text);
+                stat = StringToEffectType(stat_text);
                 value = float.Parse(token[(index+1)..]);
             }
 
@@ -839,14 +824,14 @@ public class CSVReader : MonoBehaviour
         }
     }
 
-    private StatusType StringToStat(string s)
+    private EffectType StringToEffectType(string s)
     {
         return s switch
         {
-            "atk" => StatusType.Attack,
-            "def" => StatusType.Defense,
-            "spd" => StatusType.Speed,
-            _ => StatusType.None,
+            "atk" => EffectType.ATKUp,
+            "def" => EffectType.DEFUp,
+            "spd" => EffectType.SPDUp,
+            _ => EffectType.ATKUp,
         };
     }
 }

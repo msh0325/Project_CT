@@ -51,7 +51,6 @@ public class ItemEffect
 {
     public string effectID;
     public int value;
-    public float mul;
     public int duration;
 }
 
