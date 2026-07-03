@@ -44,8 +44,6 @@ public class TurnGameManager : MonoBehaviour
     private int nowWave = 0;
     public TMP_Text testWaveText;
 
-    public EnemyAIController enemyAI = new EnemyAIController();
-
     public enum BattleCommandType
     {
         Attack,
