@@ -3,7 +3,7 @@ EF_BLEED,Bleed,TurnStart,AddDamage,3,5,30,10,
 EF_POISON,Poison,TurnEnd,AddDamage,4,3,30,10,EF_POISON_MP
 EF_POISON_MP,MPDrain,TurnEnd,None,-1,5,0,0,
 EF_BURN,Burn,TurnStart,AddDamage,3,3,10,5,EF_BURN_DEFDOWN
-EF_BURN_DEFDOWN,DEFDown,Token,None,-1,15,0,0,
+EF_BURN_DEFDOWN,DEFDown,RoundStart,None,-1,15,0,0,
 EF_HEAL,Heal,TurnEnd,None,0,15,1,1,
 EF_DEFEND_REDUCE,DMGReduce,TurnStart,ResetDuration,1,30,1,1,
 EF_DEFEND_GUARD,Guard,TurnStart,ResetDuration,2,0,2,0,

@@ -1,3 +1,3 @@
-Stage_ID,StageName
-TEST_ST01,테스트맵01
-TEST_ST02,테스트맵02
+Stage_ID,StageName,RewardItemID,RewardItemCount,RewardMoney
+TEST_ST01,테스트맵01,TEST_IT01/TEST_IT02,1/2,5000
+TEST_ST02,테스트맵02,TEST_IT03,0,0

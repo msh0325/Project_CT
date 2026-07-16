@@ -4,6 +4,9 @@ public class StageData
 {
     public string stageID {get;set;}
     public string stageName {get;set;}
+    public string[] rewardItemID {get;set;}
+    public int[] rewardItemcount {get;set;}
+    public int rewardMoney {get;set;}
 }
 
 public class WaveData

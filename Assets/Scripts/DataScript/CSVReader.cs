@@ -257,7 +257,7 @@ public class CSVReader : MonoBehaviour
 
             string[] cols = line.Split(',');
 
-            if(cols.Length < 2)
+            if(cols.Length < 5)
             {
                 Debug.LogWarning("Stage 컬럼 개수 부족");
                 continue;
@@ -269,10 +269,22 @@ public class CSVReader : MonoBehaviour
                 cols[j] = cols[j].Trim().Trim('"');
             }
 
+            string[] rewarditemid = cols[2].Split('/',StringSplitOptions.RemoveEmptyEntries);
+            string[] rewarditemcount_t = cols[3].Split('/',StringSplitOptions.RemoveEmptyEntries);
+            int[] rewarditemcount = new int[rewarditemcount_t.Length];
+
+            for(int n = 0;n<rewarditemcount_t.Length;n++)
+            {
+                int.TryParse(rewarditemcount_t[n], out rewarditemcount[n]);
+            }
+
             StageData data = new StageData
             {
                 stageID = cols[0],
-                stageName = cols[1]
+                stageName = cols[1],
+                rewardItemID = rewarditemid,
+                rewardItemcount = rewarditemcount,
+                rewardMoney = int.Parse(cols[4])
             };
 
             if(!saveFile.ContainsKey(data.stageID))
