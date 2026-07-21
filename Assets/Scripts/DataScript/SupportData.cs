@@ -120,7 +120,7 @@ public class SupportUnit
     public int CalcDamage(BattleUnit target)
     {
         float rndBonus = UnityEngine.Random.Range(supportSkill.random_min,supportSkill.random_max);
-        float power = supportSkill.multiplier * rndBonus * data.attack;
+        float power = rndBonus * data.attack;
         float ratio = data.attack/(float)(data.attack + target.defense);
         int dmg = Mathf.RoundToInt(power * ratio);
         return Mathf.Max(dmg, 0);

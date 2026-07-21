@@ -274,7 +274,7 @@ public class BattleUnit
         float criMul = UnityEngine.Random.Range(0,100f) < critical ? 1.5f : 1.0f;
         float rndMul = UnityEngine.Random.Range(skill.random_min, skill.random_max);
 
-        float power = attack * criMul * rndMul * skill.multiplier;
+        float power = attack * criMul * rndMul;
         return power;
     }
 

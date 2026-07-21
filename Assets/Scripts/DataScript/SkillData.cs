@@ -6,7 +6,6 @@ public class SkillData
     public string skillName {get;set;}
     public float random_min {get;set;}
     public float random_max {get;set;}
-    public float multiplier {get;set;}
     public int useMP {get;set;}
     public int coolTime {get;set;}
 
