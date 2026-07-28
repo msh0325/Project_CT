@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class ItemInventoryPannel : MonoBehaviour
+public class ItemInventoryPanel : MonoBehaviour
 {
     private PlayerData pcData;
     [SerializeField] private GameObject itemSlotPrefab;

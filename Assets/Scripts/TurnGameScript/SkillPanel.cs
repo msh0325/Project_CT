@@ -2,7 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class SkillPannel : MonoBehaviour
+public class SkillPanel : MonoBehaviour
 {
     private TurnGameManager gm;
     public BattleUIManager uiManager;

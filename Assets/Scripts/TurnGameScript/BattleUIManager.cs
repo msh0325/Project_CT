@@ -8,9 +8,9 @@ public class BattleUIManager : MonoBehaviour
 {
     private TurnGameManager gm;
     public Camera mainCam;
-    public GameObject playerUIPannel;
-    public SkillPannel skillUIPannel;
-    public ItemInventoryPannel itemPannel;
+    public GameObject playerUIPanel;
+    public SkillPanel skillUIPanel;
+    public ItemInventoryPanel itemPanel;
     public Button attackBtn;
     public Button skillBtn;
     public Button defendBtn;
@@ -29,7 +29,7 @@ public class BattleUIManager : MonoBehaviour
     {
         gm = TurnGameManager.instance;
         gm.OnPlayerTurnStart += ShowPlayerUI;
-        skillUIPannel.uiManager = this;
+        skillUIPanel.uiManager = this;
 
         HidePlayerUI();
 
@@ -40,8 +40,8 @@ public class BattleUIManager : MonoBehaviour
 
         skillBtn.onClick.AddListener(() =>
         {
-            playerUIPannel.SetActive(false);
-            skillUIPannel.gameObject.SetActive(true);
+            playerUIPanel.SetActive(false);
+            skillUIPanel.gameObject.SetActive(true);
         });
 
         defendBtn.onClick.AddListener(() =>
@@ -51,7 +51,7 @@ public class BattleUIManager : MonoBehaviour
 
         itemBtn.onClick.AddListener(() =>
         {
-            SetItemPannel(!itemPannel.gameObject.activeSelf);
+            SetItemPannel(!itemPanel.gameObject.activeSelf);
         });
 
         supportBtn.onClick.AddListener(() =>
@@ -65,10 +65,10 @@ public class BattleUIManager : MonoBehaviour
 
     void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Escape) && skillUIPannel.gameObject.activeSelf)
+        if(Input.GetKeyDown(KeyCode.Escape) && skillUIPanel.gameObject.activeSelf)
         {
-            playerUIPannel.SetActive(true);
-            skillUIPannel.gameObject.SetActive(false);
+            playerUIPanel.SetActive(true);
+            skillUIPanel.gameObject.SetActive(false);
         }
 
         if(!isTargetSelectMode) return;
@@ -101,7 +101,7 @@ public class BattleUIManager : MonoBehaviour
             if(unit != null && candidateSet.Contains(unit))
             {
                 onTargetSelected?.Invoke(unit);
-                if (!playerUIPannel.activeSelf)
+                if (!playerUIPanel.activeSelf)
                 {
                     SwitchShowUI();
                 }
@@ -151,26 +151,26 @@ public class BattleUIManager : MonoBehaviour
 
     public void ShowPlayerUI(BattleUnit unit)
     {
-        playerUIPannel.SetActive(true);
-        skillUIPannel.SettingSkills(unit);
+        playerUIPanel.SetActive(true);
+        skillUIPanel.SettingSkills(unit);
     }
 
     public void SetItemPannel(bool on)
     {
-        itemPannel.gameObject.SetActive(on);
+        itemPanel.gameObject.SetActive(on);
     }
 
     public void SwitchShowUI()
     {
-        bool on = playerUIPannel.activeSelf;
-        playerUIPannel.SetActive(!on);
-        skillUIPannel.gameObject.SetActive(on);
+        bool on = playerUIPanel.activeSelf;
+        playerUIPanel.SetActive(!on);
+        skillUIPanel.gameObject.SetActive(on);
     }
 
     public void HidePlayerUI()
     {
-        playerUIPannel.SetActive(false);
-        skillUIPannel.gameObject.SetActive(false);
+        playerUIPanel.SetActive(false);
+        skillUIPanel.gameObject.SetActive(false);
     }
 
     public void ForceExitSelectMode()

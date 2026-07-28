@@ -20,6 +20,9 @@ public class TurnGameManager : MonoBehaviour
     public BattleUnit currentUnit => turnOrder[currentTurnIndex];
     public bool IsWaitingPlayerInput => isPlayerChecked;
 
+    public VictoryPanel victoryPanel;
+    public DefeatPanel defeatPanel;
+
     private List<BattleUI> uis = new();
     private GameObject[] enemyPrefabs = new GameObject[3];
     private BattleCommandType command;
@@ -103,7 +106,7 @@ public class TurnGameManager : MonoBehaviour
         // 1. 현재 참여중인 캐릭터 체크 (state = SetUp)
         state = BattleState.SetUp;
         SetUpBattleUnits();
-        uiManager.skillUIPannel.Init();
+        uiManager.skillUIPanel.Init();
 
         // 2. 전투 종료(isBattleEnd) 가 아니면 전투 시작
         while(!isBattleEnd)
@@ -183,7 +186,7 @@ public class TurnGameManager : MonoBehaviour
                         while (!isActionDone)
                         {
                             if(nowUnit.isDead) break;
-                            uiManager.skillUIPannel.CheckCanUseSkill(nowUnit);
+                            uiManager.skillUIPanel.CheckCanUseSkill(nowUnit);
                             uiManager.CheckCanUseSupport(support,nowUnit);
                             isPlayerChecked = true;
 
@@ -388,6 +391,7 @@ public class TurnGameManager : MonoBehaviour
         {
             Debug.Log("defeat");
             isBattleEnd = true;
+            defeatPanel.gameObject.SetActive(true);
             return true;
         }
 
@@ -411,6 +415,11 @@ public class TurnGameManager : MonoBehaviour
             {
                 Debug.Log("victory");
                 isBattleEnd = true;
+
+                dataManager.stageDatas.TryGetValue(stageID, out var data);
+
+                victoryPanel.gameObject.SetActive(true);
+                victoryPanel.SetPanel(data);
                 return true;
             }
         }
@@ -599,8 +608,8 @@ public class TurnGameManager : MonoBehaviour
                 }
                 
                 item.UseItem();
-                uiManager.itemPannel.GetComponent<ItemInventoryPannel>().Refresh();
-                uiManager.itemPannel.ClearSelectSlot();
+                uiManager.itemPanel.GetComponent<ItemInventoryPanel>().Refresh();
+                uiManager.itemPanel.ClearSelectSlot();
                 
                 Debug.Log("use item");
                 unit.UseSubAction();
@@ -825,6 +834,11 @@ public class TurnGameManager : MonoBehaviour
 
             unit.SetTurnStatus(isCurrent, isNext);
         }
+    }
+
+    private void ShowResultPanel()
+    {
+        
     }
 }
 

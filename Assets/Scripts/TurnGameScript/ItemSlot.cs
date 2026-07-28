@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 public class ItemSlot : MonoBehaviour
 {
-    public ItemInventoryPannel itemPannel;
+    public ItemInventoryPanel itemPannel;
     public GameObject cooltimeImg;
     public TMP_Text cooltime_Text;
     public TMP_Text count_Text;
