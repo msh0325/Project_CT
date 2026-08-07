@@ -87,6 +87,9 @@ public class TurnGameManager : MonoBehaviour
         }
         stageID = pcDataManager.nowSelectStageID;
 
+        victoryPanel.gameObject.SetActive(false);
+        defeatPanel.gameObject.SetActive(false);
+
         StartCoroutine(BattleRoutine());
     }
 

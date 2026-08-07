@@ -26,6 +26,9 @@ public class PlayerData : MonoBehaviour
     static Dictionary<string, Sprite> _iconCache = new();
     // 이벤트 플래그 : 튜토리얼 클리어, NPC 만남 등
 
+    // 현재 플레이어가 가지고 있는 돈
+    public int pcMoney = 0;
+
     void Awake()
     {
         if(instance == null)
@@ -137,5 +140,36 @@ public class PlayerData : MonoBehaviour
         sp = Resources.Load<Sprite>($"Image/{iconKey}");
         _iconCache[iconKey] = sp;
         return sp;
+    }
+
+    public void GetItem(string itemId, int count)
+    {
+        if(itemBoxMap.TryGetValue(itemId, out var item))
+        {
+            item.stack += count;
+            return;
+        }
+
+        if(!dataManager.itemData.TryGetValue(itemId, out var data))
+        {
+            Debug.LogWarning($"itemdata에 {itemId} 없음");
+            return;
+        }
+
+        ItemStack stack = new()
+        {
+            itemID = itemId,
+            maxStack = data.maxStack,
+            stack = count,
+            cooltime = data.cooltime                
+        };
+        
+        itemBox.Add(stack);
+        itemBoxMap.Add(itemId, stack);
+    }
+
+    public void GetMoney(int count)
+    {
+        pcMoney += count;
     }
 }

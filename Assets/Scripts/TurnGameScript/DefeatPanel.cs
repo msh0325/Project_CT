@@ -22,6 +22,5 @@ public class DefeatPanel : MonoBehaviour
             Debug.Log("돌아가기")            ;
             SceneManager.LoadScene("StoryScene");
         });
-        gameObject.SetActive(false);
     }
 }

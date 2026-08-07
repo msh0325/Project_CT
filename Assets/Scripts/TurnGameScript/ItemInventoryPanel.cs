@@ -40,6 +40,9 @@ public class ItemInventoryPanel : MonoBehaviour
             ItemSlot slot = slots[index].GetComponent<ItemSlot>();
             slot.count_Text.text = itemStack.Value.ToString();
             DataManager.instance.itemData.TryGetValue(itemStack.Key, out var itemdata);
+
+            // itemtype이 소모품(ItemType.Consumable)이 아니면 스킵
+            if(itemdata == null || itemdata.itemType != ItemType.Consumable) continue;
             
             slot.Bind(itemdata,itemStack.Key, itemStack.Value.stack);
             index++;
@@ -59,7 +62,11 @@ public class ItemInventoryPanel : MonoBehaviour
         {
             if(index >= slotNum) break;
 
-            DataManager.instance.itemData.TryGetValue(kv.Key, out var itemData);
+            DataManager.instance.itemData.TryGetValue(kv.Key, out var itemdata);
+
+            // itemtype이 소모품(ItemType.Consumable)이 아니면 스킵
+            if(itemdata == null || itemdata.itemType != ItemType.Consumable) continue;
+
             var slot = slots[index].GetComponent<ItemSlot>();
             int cooltime = kv.Value.nowCooltime;
             if(cooltime > 0)
@@ -71,7 +78,7 @@ public class ItemInventoryPanel : MonoBehaviour
                 slot.ShowCooltime(false);
             }
             
-            slot.Bind(itemData, kv.Key, kv.Value.stack);
+            slot.Bind(itemdata, kv.Key, kv.Value.stack);
             slot.SetButtonClick(kv.Value.CanUseItem());
             index++;
         }

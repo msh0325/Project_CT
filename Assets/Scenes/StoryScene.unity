@@ -2408,7 +2408,7 @@ MonoBehaviour:
     passiveSkillID: 
     attack: 0
     cast: 0
-  nowSelectStageID: TEST_ST01
+  nowSelectStageID: TEST_REWARD
   itemBox:
   - itemID: TEST_IT02
     maxStack: 0
@@ -2420,6 +2420,7 @@ MonoBehaviour:
     stack: 1
     cooltime: 0
     nowCooltime: 0
+  pcMoney: 0
 --- !u!4 &1557864987
 Transform:
   m_ObjectHideFlags: 0
