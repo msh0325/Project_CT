@@ -276,7 +276,6 @@ public class CSVReader : MonoBehaviour
             {
                 int.TryParse(rewarditemcount_t[n], out rewarditemcount[n]);
             }
-            Debug.Log(cols[0]);
 
             StageData data = new StageData
             {
