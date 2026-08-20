@@ -1,3 +1,4 @@
+using System.Linq;
 using TMPro;
 using UnityEngine;
 
@@ -6,6 +7,7 @@ public class BattleUI : MonoBehaviour
     public TMP_Text nameText;
     public TMP_Text hpText;
     public TMP_Text mpText;
+    public TMP_Text stateText;
     public BattleUnit runtimeUnit;
     [SerializeField] private SpriteRenderer highlightBox;
     [SerializeField] private SpriteRenderer turnArrow;
@@ -33,6 +35,12 @@ public class BattleUI : MonoBehaviour
         if(hpText != null) hpText.text = $"HP : {runtimeUnit.currentHP}";
 
         if(mpText != null) mpText.text = $"MP : {runtimeUnit.currentMP}";
+
+        if(stateText != null)
+        {
+            stateText.text = runtimeUnit.activeEffects.Count == 0? "" : 
+            string.Join(", ", runtimeUnit.activeEffects.Select(e=> $"{e.data.type} {e.value}/{e.duration}"));
+        }
     }
 
     public void SetCandidate(bool on)
