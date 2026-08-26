@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class BattleUI : MonoBehaviour
 {
+    public SpriteRenderer unitSprite;
     public TMP_Text nameText;
     public TMP_Text hpText;
     public TMP_Text mpText;
@@ -22,6 +23,11 @@ public class BattleUI : MonoBehaviour
         
         runtimeUnit.OnTurnStateChange -= UpdateTurnArrow;
         runtimeUnit.OnTurnStateChange += UpdateTurnArrow;
+
+        if(unit.team == TeamType.Enemy)
+        {
+            unitSprite.flipX = true;
+        }
         
         Refresh();
     }

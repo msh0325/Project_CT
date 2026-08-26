@@ -1,15 +1,15 @@
-Effect_ID,Type,Timing,StackType,duration,value,maxStack,maxDuration,linkedEffectID
-EF_BLEED,Bleed,TurnStart,AddDamage,3,5,30,10,
-EF_POISON,Poison,TurnEnd,AddDamage,4,3,30,10,EF_POISON_MP
-EF_POISON_MP,MPDrain,TurnEnd,None,-1,5,0,0,
-EF_BURN,Burn,TurnStart,AddDamage,3,3,10,5,EF_BURN_DEFDOWN
-EF_BURN_DEFDOWN,DEFDown,RoundStart,None,-1,15,0,0,
-EF_HEAL,Heal,TurnEnd,None,0,15,1,1,
-EF_DEFEND_REDUCE,DMGReduce,TurnStart,ResetDuration,1,30,1,1,
-EF_DEFEND_GUARD,Guard,TurnStart,ResetDuration,2,0,2,0,
-EF_SUPPORT_01,ATKUp,RoundStart,None,-1,10,0,0,
-EF_SUPPORT_TIMING,DEFUp,RoundStart,None,-1,15,0,0,
-EF_STUN,Stun,TurnStart,ResetDuration,1,0,0,1,
-EF_FREEZE,Freeze,Token,ResetDuration,1,15,0,2,EF_FREEZE_SPDDOWN
-EF_FREEZE_SPDDOWN,SPDDown,RoundStart,None,-1,-2,0,0,
-EF_ATKUP,ATKUp,Token,ResetDuration,2,20,0,3,
+Effect_ID,Type,Timing,StackType,duration,value,maxStack,maxDuration,linkedEffectID,Name,Explain,IconKey
+EF_BLEED,Bleed,TurnStart,AddDamage,3,5,30,10,,출혈,"턴 시작시, 데미지를 입습니다",IC_EFFECT_BLEED
+EF_POISON,Poison,TurnEnd,AddDamage,4,3,30,10,EF_POISON_MP,독,"턴 종료시, 데미지를 입고 마나가 감소됩니다",IC_EFFECT_POISON
+EF_POISON_MP,MPDrain,TurnEnd,None,-1,5,0,0,,,,
+EF_BURN,Burn,TurnStart,AddDamage,3,3,10,5,EF_BURN_DEFDOWN,화상,"턴 시작시, 데미지를 입고 지속시간 동안 방어력이 감소됩니다",IC_EFFECT_BURN
+EF_BURN_DEFDOWN,DEFDown,RoundStart,None,-1,15,0,0,,,,
+EF_HEAL,Heal,TurnEnd,None,0,15,1,1,,,,
+EF_DEFEND_REDUCE,DMGReduce,TurnStart,ResetDuration,1,30,1,1,,데미지 감소,"지속시간 동안, 받는 데미지가 감소됩니다",
+EF_DEFEND_GUARD,Guard,TurnStart,ResetDuration,2,0,2,0,,가드,다음 공격의 데미지를 완전히 막습니다,
+EF_SUPPORT_01,ATKUp,RoundStart,None,-1,10,0,0,,,,
+EF_SUPPORT_TIMING,DEFUp,RoundStart,None,-1,15,0,0,,,,
+EF_STUN,Stun,TurnStart,ResetDuration,1,0,0,1,,기절,이번 턴 동안 행동이 불가합니다,IC_EFFECT_STUN
+EF_FREEZE,Freeze,Token,ResetDuration,1,15,0,2,EF_FREEZE_SPDDOWN,빙결,다음에 받는 데미지가 증가하고 지속시간 동안 속도가 감소됩니다,IC_EFFECT_FREEZE
+EF_FREEZE_SPDDOWN,SPDDown,RoundStart,None,-1,-2,0,0,,,,
+EF_ATKUP,ATKUp,Token,ResetDuration,2,20,0,3,,,,

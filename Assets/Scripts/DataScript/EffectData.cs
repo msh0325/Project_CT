@@ -14,6 +14,10 @@ public class EffectData
     public int maxDuration;  // 최대 지속시간
 
     public string linkedEffectID; // 이 이펙트가 제거될 때 같이 제거할 이펙트 ID
+    
+    public string name; // 툴팁 화면에 표시될 이펙트 이름
+    public string explain; // 툴팁 화면에 표시될 이펙트 설명
+    public string iconId; // 툴팁 화면에 표시될 아이콘 이미지 id
 
     public CleanMode cleanMode;
     public string cleanType;

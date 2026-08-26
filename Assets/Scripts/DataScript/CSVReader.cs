@@ -183,7 +183,7 @@ public class CSVReader : MonoBehaviour
 
             string[] cols = line.Split(',');
 
-            if(cols.Length < 8)
+            if(cols.Length < 11)
             {
                 Debug.LogWarning("Effect 컬럼 개수 부족");
                 continue;
@@ -222,7 +222,10 @@ public class CSVReader : MonoBehaviour
                 value = int.Parse(cols[5]),
                 maxStack = int.Parse(cols[6]),
                 maxDuration = int.Parse(cols[7]),
-                linkedEffectID = cols.Length > 8 ? cols[8].Trim() : string.Empty
+                linkedEffectID = cols.Length > 8 ? cols[8].Trim() : string.Empty,
+                name = cols[9],
+                explain = cols[10],
+                iconId = cols[11]
             };
 
             if(!saveFile.ContainsKey(data.effectID))
