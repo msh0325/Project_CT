@@ -1,12 +1,14 @@
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class BattleUI : MonoBehaviour
 {
     public SpriteRenderer unitSprite;
-    public TMP_Text nameText;
+    public Image hpSlider;
     public TMP_Text hpText;
+    public Image mpSliter;
     public TMP_Text mpText;
     public TMP_Text stateText;
     public BattleUnit runtimeUnit;
@@ -36,11 +38,19 @@ public class BattleUI : MonoBehaviour
     {
         if(runtimeUnit == null) return;
 
-        if(nameText != null) nameText.text = runtimeUnit.name;
+        if(hpSlider != null)
+        {
+            hpSlider.fillAmount = (float)runtimeUnit.currentHP / runtimeUnit.maxHP;
+        }
 
-        if(hpText != null) hpText.text = $"HP : {runtimeUnit.currentHP}";
+        if(hpText != null) hpText.text = $"{runtimeUnit.currentHP} / {runtimeUnit.maxHP}";
 
-        if(mpText != null) mpText.text = $"MP : {runtimeUnit.currentMP}";
+        if(mpSliter != null)
+        {
+            mpSliter.fillAmount = (float)runtimeUnit.currentMP / runtimeUnit.maxMP;
+        }
+
+        if(mpText != null) mpText.text = $"{runtimeUnit.currentMP} / {runtimeUnit.maxMP}";
 
         if(stateText != null)
         {
