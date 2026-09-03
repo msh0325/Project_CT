@@ -45,7 +45,7 @@ public class ItemSlot : MonoBehaviour
         itemCount = c;
 
         count_Text.text = c.ToString();
-        itemImg.sprite = PlayerData.instance.GetItemIcon(itemData.iconKey);
+        itemImg.sprite = PlayerData.instance.GetIcon(itemData.iconKey);
 
         
         if(itemCount <= 0)

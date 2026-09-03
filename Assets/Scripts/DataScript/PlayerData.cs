@@ -132,7 +132,7 @@ public class PlayerData : MonoBehaviour
         }
     }
 
-    public Sprite GetItemIcon(string iconKey)
+    public Sprite GetIcon(string iconKey)
     {
         if(string.IsNullOrEmpty(iconKey)) return _iconCache["default"];
         if(_iconCache.TryGetValue(iconKey, out var sp)) return sp;

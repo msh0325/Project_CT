@@ -10,10 +10,10 @@ public class BattleUI : MonoBehaviour
     public TMP_Text hpText;
     public Image mpSliter;
     public TMP_Text mpText;
-    public TMP_Text stateText;
     public BattleUnit runtimeUnit;
     [SerializeField] private SpriteRenderer highlightBox;
     [SerializeField] private SpriteRenderer turnArrow;
+    [SerializeField] private GameObject[] effectSlots;
     private Color targetColor = Color.yellow;
     private Color hoverColor = Color.red;
 
@@ -52,10 +52,9 @@ public class BattleUI : MonoBehaviour
 
         if(mpText != null) mpText.text = $"{runtimeUnit.currentMP} / {runtimeUnit.maxMP}";
 
-        if(stateText != null)
+        if(effectSlots != null)
         {
-            stateText.text = runtimeUnit.activeEffects.Count == 0? "" : 
-            string.Join(", ", runtimeUnit.activeEffects.Select(e=> $"{e.data.type} {e.value}/{e.duration}"));
+            
         }
     }
 

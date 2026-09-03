@@ -30,7 +30,7 @@ public class VictoryPanel : MonoBehaviour
             string itemName = DataManager.instance.itemData[rewardId].name;
             string iconID = DataManager.instance.itemData[rewardId].iconKey;
             
-            Sprite s = PlayerData.instance.GetItemIcon(iconID);
+            Sprite s = PlayerData.instance.GetIcon(iconID);
             string t = itemName + " X " + iconCount;
 
             slot.SetSlot(s,t);
