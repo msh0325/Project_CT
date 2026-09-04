@@ -231,7 +231,6 @@ public class CSVReader : MonoBehaviour
             if(!saveFile.ContainsKey(data.effectID))
             {
                 saveFile.Add(data.effectID,data);
-                Debug.Log(data.iconId);
             }
         }
     }

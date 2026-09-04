@@ -1,35 +1,49 @@
+using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class EffectSlot : MonoBehaviour
+public class EffectSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     public Image effectImg;
-    EffectData data;
-    int effectValue;
-    int effectDuration;
-    string explain;
+    public GameObject explainPanel;
+    public TMP_Text valueText;
+    public TMP_Text explainText;
     void Start()
     {
-        
-    }
-
-    void Update()
-    {
-        
+        explainPanel.SetActive(false);
+        gameObject.SetActive(false);
     }
 
     public void Bind(EffectData e, int v, int d)
     {
-        data = e;
-        effectValue = v;
-        effectDuration = d;
-        explain = e.explain;
         effectImg.sprite = PlayerData.instance.GetIcon(e.iconId);
+
+        string txt = "";
+
+        if(EffectPipeline.IsPercentValue(e.type))
+        {
+            txt = $"{v}% / {d}";
+        }
+        else if(v == 0)
+        {
+            txt = d.ToString();
+        }
+        else
+        {
+            txt = $"{v} / {d}";
+        }
+        valueText.text = txt;
+        explainText.text = e.explain;
     }
 
-    public void UpdateValue(int v, int d)
+    public void OnPointerEnter(PointerEventData eventData)
     {
-        effectValue = v;
-        effectDuration = d;
+        explainPanel.SetActive(true);
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        explainPanel.SetActive(false);
     }
 }

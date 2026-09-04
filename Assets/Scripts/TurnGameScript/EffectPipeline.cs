@@ -58,12 +58,18 @@ public static class EffectPipeline
         t == EffectType.ATKUp || t == EffectType.ATKDown ||
         t == EffectType.DEFUp || t == EffectType.DEFDown ||
         t == EffectType.SPDUp || t == EffectType.SPDDown ||
-        t == EffectType.Guard;
+        t == EffectType.Guard || t == EffectType.Freeze;
 
     public static bool IsStatType(EffectType t) =>
         t == EffectType.ATKUp || t == EffectType.ATKDown ||
         t == EffectType.DEFUp || t == EffectType.DEFDown ||
         t == EffectType.SPDUp || t == EffectType.SPDDown;
+    
+    public static bool IsPercentValue(EffectType t)=>
+        t == EffectType.ATKUp || t == EffectType.ATKDown ||
+        t == EffectType.DEFUp || t == EffectType.DEFDown ||
+        t == EffectType.SPDUp || t == EffectType.SPDDown ||
+        t == EffectType.DMGReduce;
 
     public static bool AddOrStack(BattleUnit target, ActiveEffect ae)
     {

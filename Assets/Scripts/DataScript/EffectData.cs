@@ -27,7 +27,7 @@ public class EffectData
 public class ActiveEffect
 {
     public EffectData data;
-    public string sourceTag;
+    //public string sourceTag;
     public int value;    // 런타임 값 (DoT 스택 추적용)
     public int duration;
     public int token;    // 토큰형 effect (Guard, ATKUp/Down, DEFUp/Down, SPDUp/Down)

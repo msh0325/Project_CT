@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public class BattleUI : MonoBehaviour
 {
     public SpriteRenderer unitSprite;
+    public Canvas canvas;
     public Image hpSlider;
     public TMP_Text hpText;
     public Image mpSliter;
@@ -13,7 +14,7 @@ public class BattleUI : MonoBehaviour
     public BattleUnit runtimeUnit;
     [SerializeField] private SpriteRenderer highlightBox;
     [SerializeField] private SpriteRenderer turnArrow;
-    [SerializeField] private GameObject[] effectSlots;
+    [SerializeField] private EffectSlot[] effectSlots;
     private Color targetColor = Color.yellow;
     private Color hoverColor = Color.red;
 
@@ -32,6 +33,7 @@ public class BattleUI : MonoBehaviour
         }
         
         Refresh();
+        canvas.worldCamera = Camera.main;
     }
 
     public void Refresh()
@@ -54,7 +56,25 @@ public class BattleUI : MonoBehaviour
 
         if(effectSlots != null)
         {
+            var linkedIDs = DataManager.instance.linkedTargetIDs;
+            int slotIdx = 0;
             
+            foreach(var ae in runtimeUnit.activeEffects)
+            {
+                if(linkedIDs.Contains(ae.data.effectID)) continue;
+                if(slotIdx >= effectSlots.Length) break;
+
+                bool isToken = EffectPipeline.IsTokenBased(ae.data.type);
+
+                effectSlots[slotIdx].gameObject.SetActive(true);
+                effectSlots[slotIdx].Bind(ae.data, isToken?-1 : ae.value, ae.token>0?ae.token:ae.duration);
+                slotIdx++;
+            }
+
+            for(int i=slotIdx; i<effectSlots.Length;i++)
+            {
+                effectSlots[i].gameObject.SetActive(false);
+            }
         }
     }
 

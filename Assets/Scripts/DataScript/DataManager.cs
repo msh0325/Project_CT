@@ -7,7 +7,7 @@ public class DataManager : MonoBehaviour
 
     public CSVReader csvReader;
 
-    // dictionary를 이용해 id로 캐릭터와 스킬 불러오기
+    // dictionary를 이용해 id로 캐릭터와 스킬 등 게임의 고정 데이터를 불러오기
     public Dictionary<string, CharacterStat> characterStats = new();
     public Dictionary<string, SkillData> skillDatas = new();
     public Dictionary<string, EffectData> effectDatas = new();
@@ -17,6 +17,7 @@ public class DataManager : MonoBehaviour
     public Dictionary<string, ItemData> itemData = new();
     public Dictionary<string,Passive> passiveData = new();
     public Dictionary<string,EnemyAIProfile> aiProfileData = new();
+    public HashSet<string> linkedTargetIDs = new(); // effect 중 하위 effect(ex. 독의 마나감소, 화상의 방어력감소) 관리하기 위한 hashset
 
     void Awake()
     {
@@ -58,6 +59,9 @@ public class DataManager : MonoBehaviour
 
         // AIProfiles 불러오기
         LoadAIProfiles();
+
+        // linkedTargetIDs 저장하기
+        SaveLinkedTargetIDs();
     }
 
     private void LoadAIProfiles()
@@ -80,5 +84,18 @@ public class DataManager : MonoBehaviour
 
         Debug.LogWarning($"AIProfileData에 {key} 없음.");
         return aiProfileData["Basic"];
+    }
+
+    private void SaveLinkedTargetIDs()
+    {
+        linkedTargetIDs.Clear();
+
+        foreach(var kv in effectDatas)
+        {
+            if(!string.IsNullOrEmpty(kv.Value.linkedEffectID))
+            {
+                linkedTargetIDs.Add(kv.Value.linkedEffectID);
+            }
+        }
     }
 }

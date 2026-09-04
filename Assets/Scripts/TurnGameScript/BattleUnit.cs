@@ -114,8 +114,9 @@ public class BattleUnit
         leftMainAction = mainActionCount;
         leftSubAction = subActionCount;
         row = rowType;
-        //EF_DEFEND_01
-        string defid = "EF_DEFEND_BASIC";
+        
+        // 이후 방어 개성 확실히 정하면 바꿀것
+        string defid = "EF_DEFEND_REDUCE";
         if(DataManager.instance.effectDatas.TryGetValue(defid,out var def))
         {
             defend = def;
