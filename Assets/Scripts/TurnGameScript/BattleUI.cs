@@ -15,10 +15,19 @@ public class BattleUI : MonoBehaviour
     [SerializeField] private SpriteRenderer highlightBox;
     [SerializeField] private SpriteRenderer turnArrow;
     [SerializeField] private EffectSlot[] effectSlots;
-    private Color targetColor = Color.yellow;
+    private Color targetColor = Color.white;
     private Color hoverColor = Color.red;
 
     private bool ishover = false;
+    private bool isOutlineOn = false;
+    private static readonly int  OutlineEnabledID = Shader.PropertyToID("_OutlineEnabled");
+    private static readonly int OutlineColorID = Shader.PropertyToID("_SolidOutline");
+    private MaterialPropertyBlock propBlock;
+
+    void Awake()
+    {
+        propBlock = new MaterialPropertyBlock();
+    }
 
     public void Init(BattleUnit unit)
     {
@@ -80,8 +89,17 @@ public class BattleUI : MonoBehaviour
 
     public void SetCandidate(bool on)
     {
-        if(highlightBox == null) return;
+        /*if(highlightBox == null) return;
         highlightBox.gameObject.SetActive(on);
+        UpdateColor();*/
+
+        if (isOutlineOn == on) return;
+
+        isOutlineOn = on;
+
+        unitSprite.GetPropertyBlock(propBlock);
+        propBlock.SetFloat(OutlineEnabledID, on ? 1.0f : 0.0f);
+        unitSprite.SetPropertyBlock(propBlock);
         UpdateColor();
     }
 
@@ -93,9 +111,12 @@ public class BattleUI : MonoBehaviour
 
     public void UpdateColor()
     {
-        if(highlightBox == null) return;
-        if(ishover) highlightBox.color = hoverColor;
-        else highlightBox.color = targetColor;
+        unitSprite.GetPropertyBlock(propBlock);
+        if (ishover) propBlock.SetColor(OutlineColorID, hoverColor);
+        else propBlock.SetColor(OutlineColorID, targetColor);
+        unitSprite.SetPropertyBlock(propBlock);
+        //if(ishover) highlightBox.color = hoverColor;
+        //else highlightBox.color = targetColor;
     }
     
     public void UpdateTurnArrow(bool isCurrent, bool isNext)

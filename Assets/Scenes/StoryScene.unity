@@ -2390,8 +2390,6 @@ MonoBehaviour:
   dataManager: {fileID: 0}
   ownedCharacters:
   - TEST_01
-  - TEST_02
-  - TEST_03
   - TEST_04
   roster: []
   selectedParty: []
