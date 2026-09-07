@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public class BattleUI : MonoBehaviour
 {
     public SpriteRenderer unitSprite;
+    public SpriteRenderer outlineSprite; // outline 위한 스프라이트 따로
     public Canvas canvas;
     public Image hpSlider;
     public TMP_Text hpText;
@@ -20,8 +21,8 @@ public class BattleUI : MonoBehaviour
 
     private bool ishover = false;
     private bool isOutlineOn = false;
-    private static readonly int  OutlineEnabledID = Shader.PropertyToID("_OutlineEnabled");
-    private static readonly int OutlineColorID = Shader.PropertyToID("_SolidOutline");
+    private static readonly int  OutlineEnabledID = Shader.PropertyToID("_OutlineEnable"); //_OutlineEnabled
+    private static readonly int OutlineColorID = Shader.PropertyToID("_OutlineColor"); //_SolidOutline
     private MaterialPropertyBlock propBlock;
 
     void Awake()
@@ -38,7 +39,8 @@ public class BattleUI : MonoBehaviour
 
         if(unit.team == TeamType.Enemy)
         {
-            unitSprite.flipX = true;
+            //unitSprite.flipX = true;
+            unitSprite.transform.localScale = new Vector3(-1.5f, 1.5f, 1.5f);
         }
         
         Refresh();
@@ -97,9 +99,9 @@ public class BattleUI : MonoBehaviour
 
         isOutlineOn = on;
 
-        unitSprite.GetPropertyBlock(propBlock);
+        outlineSprite.GetPropertyBlock(propBlock);
         propBlock.SetFloat(OutlineEnabledID, on ? 1.0f : 0.0f);
-        unitSprite.SetPropertyBlock(propBlock);
+        outlineSprite.SetPropertyBlock(propBlock);
         UpdateColor();
     }
 
@@ -111,10 +113,10 @@ public class BattleUI : MonoBehaviour
 
     public void UpdateColor()
     {
-        unitSprite.GetPropertyBlock(propBlock);
+        outlineSprite.GetPropertyBlock(propBlock);
         if (ishover) propBlock.SetColor(OutlineColorID, hoverColor);
         else propBlock.SetColor(OutlineColorID, targetColor);
-        unitSprite.SetPropertyBlock(propBlock);
+        outlineSprite.SetPropertyBlock(propBlock);
         //if(ishover) highlightBox.color = hoverColor;
         //else highlightBox.color = targetColor;
     }
